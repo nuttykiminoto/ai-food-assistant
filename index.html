@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍜 AI Food Decision Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink:        #FF6B9D;
+  --pink-light:  #FFB3D1;
+  --pink-pale:   #FFF0F7;
+  --purple:      #C084FC;
+  --purple-light:#EDE9FE;
+  --purple-dark: #7C3AED;
+  --mint:        #6EE7B7;
+  --gold:        #FCD34D;
+  --red-soft:    #FCA5A5;
+  --bg:          #FDF4FF;
+  --white:       #FFFFFF;
+  --text:        #3B1F5E;
+  --text-mid:    #6D28D9;
+  --text-light:  #A78BFA;
+  --radius:      20px;
+  --radius-sm:   12px;
+  --shadow:      0 8px 32px rgba(192,132,252,0.18);
+  --shadow-pink: 0 4px 20px rgba(255,107,157,0.2);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Kanit',sans-serif;
+  background: linear-gradient(160deg,#FFF0F7 0%,#F5F0FF 50%,#F0F7FF 100%);
+  color:var(--text); min-height:100vh;
+}
+/* ── Floating deco ── */
+.deco {
+  position:fixed; pointer-events:none; font-size:1.5rem; opacity:0.15; z-index:0;
+  animation: float 6s ease-in-out infinite;
+}
+.deco:nth-child(1){top:5%;left:3%;animation-delay:0s;}
+.deco:nth-child(2){top:15%;right:5%;animation-delay:1s;}
+.deco:nth-child(3){top:40%;left:1%;animation-delay:2s;}
+.deco:nth-child(4){top:60%;right:2%;animation-delay:3s;}
+.deco:nth-child(5){top:80%;left:4%;animation-delay:4s;}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-12px) rotate(10deg);}}
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg,#FF6B9D,#C084FC,#818CF8);
+  padding:2.5rem 1.5rem 3rem;
+  text-align:center; position:relative; overflow:hidden;
+}
+header::after {
+  content:''; position:absolute; bottom:-2px; left:0; right:0; height:40px;
+  background:var(--bg); border-radius:50% 50% 0 0/30px 30px 0 0;
+}
+.header-badge {
+  display:inline-block; background:rgba(255,255,255,0.25);
+  border:1px solid rgba(255,255,255,0.4);
+  color:#fff; padding:0.3rem 1rem; border-radius:50px;
+  font-size:0.8rem; margin-bottom:1rem; backdrop-filter:blur(4px);
+}
+header h1 {
+  font-size:clamp(1.5rem,4vw,2.5rem); color:#fff;
+  font-weight:700; text-shadow:0 2px 12px rgba(0,0,0,0.15);
+  margin-bottom:0.5rem;
+}
+header p { color:rgba(255,255,255,0.85); font-size:0.95rem; }
+.header-meta {
+  display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
+  margin-top:1.2rem;
+}
+.header-meta span {
+  background:rgba(255,255,255,0.2); color:#fff;
+  padding:0.3rem 0.9rem; border-radius:50px; font-size:0.8rem;
+  backdrop-filter:blur(4px);
+}
+
+/* ── Container ── */
+.container { max-width:1100px; margin:0 auto; padding:1.5rem; position:relative; z-index:1; }
+
+/* ── Card ── */
+.card {
+  background:var(--white); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:1.5rem; margin-bottom:1.5rem;
+  border:1px solid rgba(192,132,252,0.12);
+}
+.card-title {
+  font-size:1.1rem; font-weight:700; color:var(--text);
+  display:flex; align-items:center; gap:0.5rem; margin-bottom:1.2rem;
+}
+.card-title::before {
+  content:''; display:inline-block; width:4px; height:1.2em;
+  background:linear-gradient(180deg,var(--pink),var(--purple));
+  border-radius:2px;
+}
+
+/* ── Scraping Control ── */
+.control-card {
+  background:linear-gradient(135deg,#FFF0F7,#F5F0FF);
+  border:2px solid var(--pink-light);
+  display:flex; flex-wrap:wrap; align-items:center;
+  justify-content:space-between; gap:1rem;
+}
+.scrape-btn {
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff; border:none; padding:0.8rem 2rem;
+  border-radius:50px; font-size:1rem; font-family:'Kanit',sans-serif;
+  font-weight:600; cursor:pointer; box-shadow:var(--shadow-pink);
+  transition:all 0.3s; display:flex; align-items:center; gap:0.5rem;
+}
+.scrape-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(255,107,157,0.4); }
+.scrape-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+.scrape-btn .btn-icon { font-size:1.1rem; }
+.status-area { display:flex; flex-direction:column; gap:0.4rem; flex:1; min-width:200px; }
+.status-text { font-size:0.85rem; color:var(--text-mid); font-weight:500; }
+.progress-wrap { display:none; }
+.progress-bar-bg {
+  background:var(--purple-light); border-radius:50px; height:8px; overflow:hidden;
+}
+.progress-bar-fill {
+  height:100%; border-radius:50px;
+  background:linear-gradient(90deg,var(--pink),var(--purple));
+  width:0%; transition:width 0.5s ease;
+}
+.progress-label { font-size:0.75rem; color:var(--text-light); margin-top:0.2rem; }
+.last-updated { font-size:0.78rem; color:var(--text-light); }
+
+/* ── Stats ── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.stat-card {
+  background:var(--white); border-radius:var(--radius-sm);
+  padding:1.2rem; text-align:center; box-shadow:var(--shadow);
+  border:1px solid rgba(192,132,252,0.12);
+  transition:transform 0.2s;
+}
+.stat-card:hover { transform:translateY(-3px); }
+.stat-icon { font-size:1.8rem; margin-bottom:0.4rem; }
+.stat-value { font-size:1.6rem; font-weight:700; color:var(--purple-dark); }
+.stat-label { font-size:0.78rem; color:var(--text-light); margin-top:0.2rem; }
+
+/* ── Section Titles ── */
+.section-title {
+  font-size:1.2rem; font-weight:700; color:var(--text);
+  margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;
+}
+
+/* ── Workflow Steps ── */
+.workflow-steps { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; }
+.step-item {
+  display:flex; align-items:center; gap:0.5rem;
+}
+.step-bubble {
+  background:linear-gradient(135deg,var(--pink-pale),var(--purple-light));
+  border:1px solid var(--pink-light); border-radius:50px;
+  padding:0.4rem 1rem; font-size:0.82rem; font-weight:600;
+  color:var(--text); white-space:nowrap;
+}
+.step-arrow { color:var(--pink-light); font-size:1.1rem; }
+
+/* ── Tools Grid ── */
+.tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:0.8rem; }
+.tool-item {
+  background:var(--pink-pale); border-radius:var(--radius-sm);
+  padding:0.8rem; text-align:center; font-size:0.82rem; font-weight:600;
+  color:var(--text); border:1px solid rgba(255,107,157,0.15);
+}
+.tool-item .tool-icon { font-size:1.5rem; margin-bottom:0.3rem; }
+
+/* ── Scoring Table ── */
+.score-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+.score-table th {
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff; padding:0.7rem 1rem; text-align:left; font-weight:600;
+}
+.score-table th:first-child { border-radius:var(--radius-sm) 0 0 0; }
+.score-table th:last-child  { border-radius:0 var(--radius-sm) 0 0; }
+.score-table td { padding:0.6rem 1rem; border-bottom:1px solid var(--purple-light); }
+.score-table tr:last-child td { border-bottom:none; }
+.score-table tr:nth-child(even) td { background:var(--pink-pale); }
+.weight-pill {
+  display:inline-block; background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff; border-radius:50px; padding:0.15rem 0.6rem; font-size:0.78rem; font-weight:700;
+}
+
+/* ── Ranking Table ── */
+.ranking-wrap { overflow-x:auto; }
+.ranking-table { width:100%; border-collapse:collapse; font-size:0.82rem; min-width:700px; }
+.ranking-table thead tr {
+  background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff;
+}
+.ranking-table th { padding:0.7rem 0.8rem; text-align:center; font-weight:600; white-space:nowrap; }
+.ranking-table td { padding:0.55rem 0.8rem; border-bottom:1px solid var(--purple-light); text-align:center; }
+.ranking-table tr:nth-child(even) td { background:var(--pink-pale); }
+.ranking-table tr:hover td { background:var(--purple-light); transition:0.2s; }
+.rank-badge {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:50%;
+  font-weight:700; font-size:0.85rem;
+}
+.rank-1 { background:linear-gradient(135deg,#FCD34D,#F59E0B); color:#fff; }
+.rank-2 { background:linear-gradient(135deg,#E2E8F0,#94A3B8); color:#fff; }
+.rank-3 { background:linear-gradient(135deg,#FCA5A5,#EF4444); color:#fff; }
+.rank-other { background:var(--purple-light); color:var(--purple-dark); }
+.score-bar-wrap { display:flex; align-items:center; gap:0.4rem; justify-content:center; }
+.score-bar {
+  width:50px; height:6px; background:var(--purple-light); border-radius:3px; overflow:hidden;
+}
+.score-bar-inner { height:100%; background:linear-gradient(90deg,var(--pink),var(--purple)); border-radius:3px; }
+.conf-pill {
+  display:inline-block; padding:0.15rem 0.6rem; border-radius:50px; font-size:0.72rem; font-weight:600;
+}
+.conf-High { background:#D1FAE5; color:#065F46; }
+.conf-Medium { background:#FEF3C7; color:#92400E; }
+.conf-Low { background:#FEE2E2; color:#991B1B; }
+.risk-low  { color:#059669; font-size:0.8rem; }
+.risk-medium{ color:#D97706; font-size:0.8rem; }
+.risk-high { color:#DC2626; font-size:0.8rem; }
+.restaurant-link { color:var(--purple-dark); text-decoration:none; }
+.restaurant-link:hover { color:var(--pink); }
+.name-cell { text-align:left; font-weight:500; }
+
+/* ── Top 3 Cards ── */
+.top3-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem; }
+.top3-card {
+  border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);
+  transition:transform 0.3s; position:relative;
+}
+.top3-card:hover { transform:translateY(-5px); }
+.top3-card-header {
+  padding:1.2rem 1.2rem 0.8rem;
+  position:relative;
+}
+.top3-card:nth-child(1) .top3-card-header { background:linear-gradient(135deg,#FF6B9D,#F59E0B); }
+.top3-card:nth-child(2) .top3-card-header { background:linear-gradient(135deg,#C084FC,#818CF8); }
+.top3-card:nth-child(3) .top3-card-header { background:linear-gradient(135deg,#6EE7B7,#3B82F6); }
+.top3-rank-label {
+  display:inline-block; background:rgba(255,255,255,0.3);
+  color:#fff; padding:0.2rem 0.8rem; border-radius:50px; font-size:0.78rem; margin-bottom:0.5rem;
+}
+.top3-name { color:#fff; font-size:1.1rem; font-weight:700; margin-bottom:0.3rem; }
+.top3-meta { color:rgba(255,255,255,0.85); font-size:0.8rem; }
+.top3-score-badge {
+  position:absolute; top:1rem; right:1rem;
+  background:rgba(255,255,255,0.95); border-radius:50%;
+  width:52px; height:52px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.top3-score-num { font-size:1.1rem; font-weight:700; color:var(--purple-dark); line-height:1; }
+.top3-score-lbl { font-size:0.55rem; color:var(--text-light); }
+.top3-card-body { background:var(--white); padding:1.2rem; }
+.top3-detail { font-size:0.82rem; color:var(--text); margin-bottom:0.4rem; display:flex; gap:0.4rem; }
+.top3-detail-icon { width:16px; }
+.score-breakdown { display:grid; grid-template-columns:1fr 1fr; gap:0.3rem; margin:0.8rem 0; }
+.score-item { font-size:0.75rem; color:var(--text-light); display:flex; justify-content:space-between; }
+.score-item span:last-child { font-weight:600; color:var(--purple-dark); }
+.top3-notes {
+  background:var(--pink-pale); border-radius:var(--radius-sm);
+  padding:0.6rem 0.8rem; font-size:0.78rem; color:var(--text);
+  border-left:3px solid var(--pink);
+}
+.top3-btn {
+  display:block; text-align:center; margin-top:0.8rem;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff; text-decoration:none; padding:0.5rem;
+  border-radius:50px; font-size:0.8rem; font-weight:600;
+  transition:opacity 0.2s;
+}
+.top3-btn:hover { opacity:0.85; }
+
+/* ── Comparison ── */
+.compare-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+.compare-table th {
+  background:var(--pink-pale); color:var(--text); padding:0.6rem 0.8rem;
+  font-weight:700; border-bottom:2px solid var(--pink-light);
+}
+.compare-table td { padding:0.55rem 0.8rem; border-bottom:1px solid var(--purple-light); vertical-align:top; }
+.compare-table tr:hover td { background:var(--pink-pale); transition:0.2s; }
+.pros-cons { font-size:0.78rem; }
+.pros-cons .pro { color:#059669; }
+.pros-cons .con { color:#DC2626; }
+
+/* ── Loading Overlay ── */
+.loading-overlay {
+  display:none; position:fixed; inset:0; z-index:999;
+  background:rgba(253,244,255,0.92); backdrop-filter:blur(6px);
+  flex-direction:column; align-items:center; justify-content:center; gap:1.5rem;
+}
+.loading-overlay.active { display:flex; }
+.loading-spinner {
+  width:70px; height:70px; border-radius:50%;
+  border:5px solid var(--purple-light);
+  border-top-color:var(--pink);
+  border-right-color:var(--purple);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg { font-size:1.2rem; font-weight:600; color:var(--text); text-align:center; }
+.loading-submsg { font-size:0.85rem; color:var(--text-light); text-align:center; }
+.loading-progress-bg {
+  width:280px; height:10px; background:var(--purple-light);
+  border-radius:50px; overflow:hidden;
+}
+.loading-progress-fill {
+  height:100%; background:linear-gradient(90deg,var(--pink),var(--purple));
+  border-radius:50px; width:0%; transition:width 0.8s ease;
+}
+
+/* ── Empty State ── */
+.empty-state { text-align:center; padding:3rem 1rem; color:var(--text-light); }
+.empty-state .empty-icon { font-size:3rem; margin-bottom:1rem; opacity:0.5; }
+
+/* ── Footer ── */
+footer {
+  text-align:center; padding:2rem 1rem;
+  font-size:0.78rem; color:var(--text-light);
+}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .workflow-steps { flex-direction:column; align-items:flex-start; }
+  .step-arrow { transform:rotate(90deg); }
+  .top3-grid { grid-template-columns:1fr; }
+}
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background:linear-gradient(90deg,var(--purple-light) 25%,var(--pink-pale) 50%,var(--purple-light) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:6px; height:14px; margin:4px 0;
+}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+</style>
+</head>
+<body>
+
+<!-- Floating decorations -->
+<div class="deco">🌸</div>
+<div class="deco">✨</div>
+<div class="deco">🍜</div>
+<div class="deco">💜</div>
+<div class="deco">🌷</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div style="font-size:3rem">🍜</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loadingMsg">กำลังเริ่มต้น Scraping...</div>
+  <div class="loading-submsg" id="loadingSubMsg">กรุณารอสักครู่ ✨</div>
+  <div class="loading-progress-bg">
+    <div class="loading-progress-fill" id="loadingFill"></div>
+  </div>
+  <div style="font-size:0.8rem;color:var(--text-light)" id="loadingPct">0%</div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-badge">🤖 AI Workflow Assignment</div>
+  <h1>🍜 AI Food Decision Assistant</h1>
+  <p>ระบบช่วยเลือกร้านอาหารสำหรับทีม 8–12 คน จาก 5 ย่านกรุงเทพ</p>
+  <div class="header-meta">
+    <span>📍 5 ย่าน: อโศก · ทองหล่อ · พร้อมพงษ์ · สยาม · อารีย์</span>
+    <span>📅 <span id="currentDate"></span></span>
+    <span>🎓 Donut</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Control Card -->
+  <div class="card control-card">
+    <div>
+      <button class="scrape-btn" id="scrapeBtn" onclick="startScraping()">
+        <span class="btn-icon">🔄</span> Scraping ใหม่
+      </button>
+    </div>
+    <div class="status-area">
+      <div class="status-text" id="statusText">✅ พร้อมใช้งาน — กดปุ่มเพื่อดึงข้อมูลใหม่</div>
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">เริ่มต้น...</div>
+      </div>
+    </div>
+    <div class="last-updated" id="lastUpdated">–</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-icon">🏪</div><div class="stat-value skeleton" style="width:60px;margin:auto" id="statTotal">&nbsp;</div><div class="stat-label">ร้านทั้งหมด</div></div>
+    <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value skeleton" style="width:60px;margin:auto" id="statRating">&nbsp;</div><div class="stat-label">Rating เฉลี่ย</div></div>
+    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value skeleton" style="width:60px;margin:auto" id="statPrice">&nbsp;</div><div class="stat-label">ราคา/คน (เฉลี่ย)</div></div>
+    <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value skeleton" style="width:60px;margin:auto" id="statScore">&nbsp;</div><div class="stat-label">Score เฉลี่ย</div></div>
+  </div>
+
+  <!-- Objective -->
+  <div class="card">
+    <div class="card-title">🎯 เป้าหมายของโปรเจกต์</div>
+    <p style="font-size:0.9rem;line-height:1.8;color:var(--text)">
+      สร้าง <strong>AI Workflow</strong> เพื่อค้นหา วิเคราะห์ ให้คะแนน และแนะนำร้านอาหารที่เหมาะสำหรับ
+      <strong>ทีม 8–12 คน</strong> ในพื้นที่กรุงเทพฯ โดยใช้ข้อมูลจริงจาก Google Maps
+      ผ่าน Apify Scraper และ AI ช่วยทำความสะอาดข้อมูลและให้คะแนน 6 มิติ
+      เพื่อตัดสินใจเลือกร้านได้อย่างมีหลักฐานตรวจสอบได้จริง
+    </p>
+  </div>
+
+  <!-- Workflow -->
+  <div class="card">
+    <div class="card-title">⚙️ Workflow Overview</div>
+    <div class="workflow-steps">
+      <div class="step-item"><div class="step-bubble">1️⃣ ตั้งโจทย์</div></div>
+      <span class="step-arrow">→</span>
+      <div class="step-item"><div class="step-bubble">2️⃣ Apify Scrape</div></div>
+      <span class="step-arrow">→</span>
+      <div class="step-item"><div class="step-bubble">3️⃣ Google Sheets</div></div>
+      <span class="step-arrow">→</span>
+      <div class="step-item"><div class="step-bubble">4️⃣ Clean Data</div></div>
+      <span class="step-arrow">→</span>
+      <div class="step-item"><div class="step-bubble">5️⃣ Scoring 100 pts</div></div>
+      <span class="step-arrow">→</span>
+      <div class="step-item"><div class="step-bubble">6️⃣ n8n Automation</div></div>
+      <span class="step-arrow">→</span>
+      <div class="step-item"><div class="step-bubble">7️⃣ HTML Report</div></div>
+    </div>
+  </div>
+
+  <!-- Tools & Data Sources -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:1.5rem">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">🛠 เครื่องมือที่ใช้</div>
+      <div class="tools-grid">
+        <div class="tool-item"><div class="tool-icon">🕷</div>Apify</div>
+        <div class="tool-item"><div class="tool-icon">📊</div>Google Sheets</div>
+        <div class="tool-item"><div class="tool-icon">⚙️</div>n8n</div>
+        <div class="tool-item"><div class="tool-icon">🤖</div>Claude AI</div>
+        <div class="tool-item"><div class="tool-icon">🌐</div>HTML/CSS/JS</div>
+        <div class="tool-item"><div class="tool-icon">🗺</div>Google Maps</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">📂 แหล่งข้อมูล</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;font-size:0.85rem">
+        <div>🗺 <strong>Google Maps</strong> via Apify compass~crawler-google-places</div>
+        <div>📋 <strong>Google Sheets</strong> — <a href="https://docs.google.com/spreadsheets/d/1rJtWx-jcf0Gv53YZZk-RIfI4P4owmKcTwplTQnWQjdk" target="_blank" style="color:var(--pink)">ai-food-assistant-data</a></div>
+        <div>🏙 <strong>5 พื้นที่:</strong> อโศก · ทองหล่อ · พร้อมพงษ์ · สยาม · อารีย์</div>
+        <div>📝 <strong>Raw Data:</strong> ≥20 ร้านต่อย่าน × 5 ย่าน = 100 ร้าน</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scoring Model -->
+  <div class="card">
+    <div class="card-title">📐 เกณฑ์การให้คะแนน (100 คะแนน)</div>
+    <div style="overflow-x:auto">
+      <table class="score-table">
+        <thead>
+          <tr><th>มิติการให้คะแนน</th><th>น้ำหนัก</th><th>วิธีคิดคะแนน</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>⭐ Rating & Review Quality</td><td><span class="weight-pill">25 pts</span></td><td>Rating × 20/5 + min(reviews/200, 1) × 5</td></tr>
+          <tr><td>👥 Group Suitability</td><td><span class="weight-pill">20 pts</span></td><td>ความสามารถรองรับกลุ่ม 8-12 คน</td></tr>
+          <tr><td>💰 Price Suitability</td><td><span class="weight-pill">15 pts</span></td><td>≤150฿=15, ≤250฿=12, ≤400฿=9, ≤600฿=6</td></tr>
+          <tr><td>🚇 Travel Convenience</td><td><span class="weight-pill">15 pts</span></td><td>BTS/MRT direct=15, เดิน 5 นาที=12</td></tr>
+          <tr><td>📋 Data Completeness</td><td><span class="weight-pill">15 pts</span></td><td>ข้อมูลครบ 9 fields = 15 คะแนน</td></tr>
+          <tr><td>✨ Uniqueness / Experience</td><td><span class="weight-pill">10 pts</span></td><td>ประเภทอาหารพิเศษ ชื่อเสียง</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top 10 -->
+  <div class="card">
+    <div class="card-title">🏆 Top 10 Ranking</div>
+    <div class="ranking-wrap">
+      <table class="ranking-table" id="rankingTable">
+        <thead>
+          <tr>
+            <th>#</th><th>ร้านอาหาร</th><th>ย่าน</th><th>ประเภท</th>
+            <th>⭐</th><th>฿/คน</th><th>Score</th><th>Confidence</th><th>Risk</th>
+          </tr>
+        </thead>
+        <tbody id="rankingBody">
+          <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🍜</div><div>กำลังโหลดข้อมูล...</div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top 3 -->
+  <div class="card">
+    <div class="card-title">💝 Top 3 Recommendation</div>
+    <div class="top3-grid" id="top3Grid">
+      <div class="empty-state"><div class="empty-icon">✨</div><div>กำลังโหลดข้อมูล...</div></div>
+    </div>
+  </div>
+
+  <!-- Comparison -->
+  <div class="card">
+    <div class="card-title">📊 เปรียบเทียบร้านแนะนำ (Top 5)</div>
+    <div style="overflow-x:auto">
+      <table class="compare-table" id="compareTable">
+        <thead>
+          <tr><th>ร้านอาหาร</th><th>ย่าน</th><th>ราคา/คน</th><th>Score</th><th>Score Breakdown</th><th>จุดเด่น / ข้อควรระวัง</th></tr>
+        </thead>
+        <tbody id="compareBody">
+          <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📊</div><div>กำลังโหลดข้อมูล...</div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  🌸 AI Food Decision Assistant · Powered by Apify + n8n + Google Sheets · 2026
+</footer>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONFIG — แก้ค่าเหล่านี้ก่อนใช้งาน
+// ════════════════════════════════════════════════════
+const CONFIG = {
+  // URL ของ n8n Webhook (POST) — เปิดใช้งาน Webhook node ใน n8n ก่อน
+  WEBHOOK_TRIGGER_URL: 'https://n8n-external.exservice.io/webhook/ai-food-scrape',
+
+  // Google Sheets ID (ต้องตั้งค่า Share → Anyone with link → Viewer)
+  SHEET_ID: '1rJtWx-jcf0Gv53YZZk-RIfI4P4owmKcTwplTQnWQjdk',
+  SHEET_NAME: 'Clean & Score',
+
+  // เวลา scraping โดยประมาณ (ms) — 100 วินาที
+  SCRAPE_DURATION_MS: 100000,
+};
+
+// ════════════════════════════════════════════════════
+// Utility
+// ════════════════════════════════════════════════════
+function sheetsURL() {
+  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}&t=${Date.now()}`;
+}
+
+function parseGViz(raw) {
+  try {
+    const json = raw.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(json);
+    const cols = data.table.cols.map(c => c.label || c.id);
+    return data.table.rows
+      .map(row => {
+        const obj = {};
+        (row.c || []).forEach((cell, i) => { obj[cols[i]] = cell ? (cell.v ?? '') : ''; });
+        return obj;
+      })
+      .filter(r => r.restaurant_name && r.restaurant_name !== 'restaurant_name');
+  } catch(e) { return []; }
+}
+
+async function fetchData() {
+  try {
+    const res = await fetch(sheetsURL());
+    const text = await res.text();
+    return parseGViz(text);
+  } catch(e) {
+    console.warn('Sheet fetch error:', e);
+    return [];
+  }
+}
+
+const MESSAGES = [
+  ['🔍 กำลังค้นหาร้านอร่อย...','Apify กำลัง scrape Google Maps'],
+  ['🗺 เก็บข้อมูล 5 ย่าน...','อโศก · ทองหล่อ · พร้อมพงษ์ · สยาม · อารีย์'],
+  ['🧹 ทำความสะอาดข้อมูล...','Normalize ราคา · จัดประเภทอาหาร'],
+  ['⭐ กำลังให้คะแนน...','คำนวณ 6 มิติ × 100 คะแนน'],
+  ['📊 บันทึก Google Sheets...','Raw Data & Clean & Score'],
+  ['✨ เกือบเสร็จแล้ว!','กำลัง refresh ข้อมูลใหม่...'],
+];
+
+// ════════════════════════════════════════════════════
+// Scraping trigger
+// ════════════════════════════════════════════════════
+async function startScraping() {
+  const btn = document.getElementById('scrapeBtn');
+  btn.disabled = true;
+
+  // Show overlay
+  showOverlay(0);
+
+  // Call n8n webhook (best-effort — ignore CORS errors)
+  try {
+    await fetch(CONFIG.WEBHOOK_TRIGGER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trigger: 'html-button', timestamp: new Date().toISOString() }),
+      mode: 'no-cors'
+    });
+  } catch(e) {
+    console.log('Webhook called (no-cors mode)');
+  }
+
+  setStatus('⏳ Scraping กำลังทำงาน...', true);
+
+  // Animate progress over SCRAPE_DURATION_MS
+  let elapsed = 0;
+  const interval = 1000;
+  const timer = setInterval(() => {
+    elapsed += interval;
+    const pct = Math.min((elapsed / CONFIG.SCRAPE_DURATION_MS) * 100, 95);
+    const msgIdx = Math.min(Math.floor(pct / 17), MESSAGES.length - 1);
+    updateOverlay(pct, MESSAGES[msgIdx][0], MESSAGES[msgIdx][1]);
+    updateProgressBar(pct);
+
+    if (elapsed >= CONFIG.SCRAPE_DURATION_MS) {
+      clearInterval(timer);
+      finishScraping(btn);
+    }
+  }, interval);
+}
+
+async function finishScraping(btn) {
+  updateOverlay(100, '✅ เสร็จแล้ว!', 'กำลัง refresh ข้อมูล...');
+  updateProgressBar(100);
+  await new Promise(r => setTimeout(r, 1200));
+  hideOverlay();
+
+  setStatus('🔄 กำลังโหลดข้อมูลใหม่...', false);
+  await loadAndRender();
+
+  setStatus('✅ อัปเดตข้อมูลเสร็จแล้ว 🎉', false);
+  btn.disabled = false;
+
+  const now = new Date().toLocaleString('th-TH');
+  document.getElementById('lastUpdated').textContent = `อัปเดตล่าสุด: ${now}`;
+}
+
+function setStatus(msg, showBar) {
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('progressWrap').style.display = showBar ? 'block' : 'none';
+}
+
+function updateProgressBar(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  const msgIdx = Math.min(Math.floor(pct / 17), MESSAGES.length - 1);
+  document.getElementById('progressLabel').textContent = MESSAGES[msgIdx][0];
+}
+
+function showOverlay(pct) {
+  document.getElementById('loadingOverlay').classList.add('active');
+  updateOverlay(pct, MESSAGES[0][0], MESSAGES[0][1]);
+}
+function hideOverlay() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+function updateOverlay(pct, msg, sub) {
+  document.getElementById('loadingFill').style.width = pct + '%';
+  document.getElementById('loadingMsg').textContent = msg;
+  document.getElementById('loadingSubMsg').textContent = sub;
+  document.getElementById('loadingPct').textContent = Math.round(pct) + '%';
+}
+
+// ════════════════════════════════════════════════════
+// Render
+// ════════════════════════════════════════════════════
+function renderStats(data) {
+  const total   = data.length;
+  const avgRating = (data.reduce((s,r) => s + (parseFloat(r.google_rating)||0), 0) / total).toFixed(1);
+  const avgPrice  = Math.round(data.reduce((s,r) => s + (parseInt(r.price_per_person)||0), 0) / total);
+  const avgScore  = Math.round(data.reduce((s,r) => s + (parseFloat(r.total_score)||0), 0) / total);
+  document.getElementById('statTotal').textContent  = total;
+  document.getElementById('statRating').textContent = avgRating;
+  document.getElementById('statPrice').textContent  = '฿' + avgPrice;
+  document.getElementById('statScore').textContent  = avgScore;
+  ['statTotal','statRating','statPrice','statScore'].forEach(id => {
+    document.getElementById(id).classList.remove('skeleton');
+    document.getElementById(id).style.width = '';
+  });
+}
+
+function renderTop10(data) {
+  const sorted = [...data].sort((a,b) => (parseFloat(b.total_score)||0) - (parseFloat(a.total_score)||0)).slice(0,10);
+  const tbody = document.getElementById('rankingBody');
+  tbody.innerHTML = sorted.map((r, i) => {
+    const rank = i + 1;
+    const badgeClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+    const score = parseFloat(r.total_score) || 0;
+    const confClass = 'conf-' + (r.confidence || 'Low');
+    const riskClass = 'risk-' + (r.risk_level || 'medium');
+    return `<tr>
+      <td><span class="rank-badge ${badgeClass}">${rank}</span></td>
+      <td class="name-cell">
+        <a href="${r.source_url||'#'}" target="_blank" class="restaurant-link">${r.restaurant_name||'–'}</a>
+      </td>
+      <td>${r.area||'–'}</td>
+      <td>${r.food_type||'–'}</td>
+      <td>${r.google_rating||'–'}</td>
+      <td>฿${r.price_per_person||'–'}</td>
+      <td>
+        <div class="score-bar-wrap">
+          <div class="score-bar"><div class="score-bar-inner" style="width:${score}%"></div></div>
+          <strong>${score}</strong>
+        </div>
+      </td>
+      <td><span class="conf-pill ${confClass}">${r.confidence||'–'}</span></td>
+      <td><span class="${riskClass}">${r.risk_level||'–'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTop3(data) {
+  const top3 = [...data].sort((a,b) => (parseFloat(b.total_score)||0) - (parseFloat(a.total_score)||0)).slice(0,3);
+  const labels = ['🥇 อันดับ 1', '🥈 อันดับ 2', '🥉 อันดับ 3'];
+  document.getElementById('top3Grid').innerHTML = top3.map((r,i) => `
+    <div class="top3-card">
+      <div class="top3-card-header">
+        <div class="top3-rank-label">${labels[i]}</div>
+        <div class="top3-name">${r.restaurant_name||'–'}</div>
+        <div class="top3-meta">${r.food_type||''} · ${r.area||''}</div>
+        <div class="top3-score-badge">
+          <div class="top3-score-num">${r.total_score||0}</div>
+          <div class="top3-score-lbl">score</div>
+        </div>
+      </div>
+      <div class="top3-card-body">
+        <div class="top3-detail"><span class="top3-detail-icon">💰</span> ฿${r.price_per_person||'–'}/คน</div>
+        <div class="top3-detail"><span class="top3-detail-icon">⭐</span> ${r.google_rating||'–'} (${r.review_count||0} รีวิว)</div>
+        <div class="top3-detail"><span class="top3-detail-icon">🚇</span> ${r.travel_note||'–'}</div>
+        <div class="top3-detail"><span class="top3-detail-icon">🕐</span> ${r.opening_hours||'–'}</div>
+        <div class="top3-detail"><span class="top3-detail-icon">👥</span> รองรับ ${r.group_suitable||'–'} คน</div>
+        <div class="score-breakdown">
+          <div class="score-item"><span>Rating</span><span>${r.score_rating||0}/25</span></div>
+          <div class="score-item"><span>Group</span><span>${r.score_group||0}/20</span></div>
+          <div class="score-item"><span>Price</span><span>${r.score_price||0}/15</span></div>
+          <div class="score-item"><span>Travel</span><span>${r.score_travel||0}/15</span></div>
+          <div class="score-item"><span>Data</span><span>${r.score_data||0}/15</span></div>
+          <div class="score-item"><span>Unique</span><span>${r.score_unique||0}/10</span></div>
+        </div>
+        ${r.notes ? `<div class="top3-notes">💬 ${r.notes}</div>` : ''}
+        <a href="${r.source_url||'#'}" target="_blank" class="top3-btn">ดูบน Google Maps 📍</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderComparison(data) {
+  const top5 = [...data].sort((a,b) => (parseFloat(b.total_score)||0) - (parseFloat(a.total_score)||0)).slice(0,5);
+  const tbody = document.getElementById('compareBody');
+  tbody.innerHTML = top5.map(r => {
+    const notes = (r.notes||'').split('|');
+    const pros = notes.filter(n => !n.includes('แพง') && !n.includes('น้อย') && !n.includes('ไกล'));
+    const cons = notes.filter(n => n.includes('แพง') || n.includes('น้อย') || n.includes('ไกล') || n.includes('เสี่ยง'));
+    return `<tr>
+      <td><strong>${r.restaurant_name||'–'}</strong></td>
+      <td>${r.area||'–'}</td>
+      <td>฿${r.price_per_person||'–'}</td>
+      <td><strong style="color:var(--purple-dark)">${r.total_score||0}</strong>/100</td>
+      <td style="font-size:0.75rem">
+        Rating ${r.score_rating||0} · Group ${r.score_group||0} · Price ${r.score_price||0}<br>
+        Travel ${r.score_travel||0} · Data ${r.score_data||0} · Unique ${r.score_unique||0}
+      </td>
+      <td class="pros-cons">
+        ${pros.map(p=>`<div class="pro">✅ ${p.trim()}</div>`).join('')}
+        ${cons.map(c=>`<div class="con">⚠️ ${c.trim()}</div>`).join('')}
+        ${!pros.length && !cons.length ? (r.notes||'–') : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════
+// Init
+// ════════════════════════════════════════════════════
+async function loadAndRender() {
+  const data = await fetchData();
+  if (data.length > 0) {
+    renderStats(data);
+    renderTop10(data);
+    renderTop3(data);
+    renderComparison(data);
+    const now = new Date().toLocaleString('th-TH');
+    document.getElementById('lastUpdated').textContent = `อัปเดตล่าสุด: ${now}`;
+  } else {
+    document.getElementById('rankingBody').innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">⚠️</div><div>ไม่พบข้อมูล — ตรวจสอบว่า Google Sheet ตั้งค่า Share เป็น "Anyone with link"</div></div></td></tr>`;
+  }
+}
+
+// Set date
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString('th-TH', {year:'numeric',month:'long',day:'numeric'});
+
+// Load on start
+loadAndRender();
+</script>
+</body>
+</html>
