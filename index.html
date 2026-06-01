@@ -945,17 +945,16 @@ function startGame(){
       spawnT=0;
     }
 
-    // move & collide (hitbox เล็กกว่า emoji จริง ~40%)
-    const PAD=8;
-    const cLeft=50+PAD, cRight=78-PAD;
+    // move & collide — hitbox แคบมาก
+    const cLeft=58, cRight=68;
     for(let i=obstacles.length-1;i>=0;i--){
       const o=obstacles[i];
       o.x-=speed;
       o.el.style.right=(W-o.x)+'px';
       if(o.x+40<0){o.el.remove();obstacles.splice(i,1);continue;}
-      const oLeft=o.x+PAD, oRight=o.x+28-PAD;
-      const oBottom=GND, oTop=GND+o.h-PAD;
-      const cB=chefBottom, cT=chefBottom+CHEF_H-PAD;
+      const oLeft=o.x+10, oRight=o.x+20;
+      const oBottom=GND+4, oTop=GND+20;
+      const cB=chefBottom+4, cT=chefBottom+CHEF_H-8;
       if(cRight>oLeft&&cLeft<oRight&&cT>oBottom&&cB<oTop){
         alive=false;
         clearInterval(gameIv);gameIv=null;
