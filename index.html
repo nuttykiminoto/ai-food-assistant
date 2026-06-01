@@ -711,16 +711,26 @@ function applyFilters(){
   const maxPrice = parseInt(document.getElementById('priceSlider').value);
   const base     = getAreaData();
 
-  filteredData = base.filter(r => {
+  // hard cutoff ก่อน — กรองร้านที่ไม่ผ่านเกณฑ์ขั้นต่ำออกทันที
+  const hardPass = base.filter(r => {
     if(type && r.food_type !== type) return false;
     if(risk && r.risk_level !== risk) return false;
     if(parseInt(r.price_per_person) > maxPrice) return false;
-    if(scenario){
-      const avg = base.reduce((s,x) => s + scScore(x,scenario), 0) / base.length;
-      if(scScore(r, scenario) < avg * 0.7) return false;
-    }
+    if(scenario === 'review' && (parseFloat(r.google_rating) || 0) < 4.5)     return false;
+    if(scenario === 'review' && (parseInt(r.review_count) || 0) < 200)         return false;
+    if(scenario === 'cheap'  && (parseInt(r.price_per_person) || 9999) > 400)  return false;
+    if(scenario === 'team'   && (parseInt(r.group_suitable) || 0) < 8)         return false;
+    if(scenario === 'quick'  && (parseInt(r.score_travel) || 0) < 10)          return false;
     return true;
   });
+
+  // avg คำนวณจากเฉพาะร้านที่ผ่าน cutoff แล้ว
+  if(scenario){
+    const avg = hardPass.reduce((s,x) => s + scScore(x,scenario), 0) / (hardPass.length || 1);
+    filteredData = hardPass.filter(r => scScore(r, scenario) >= avg * 0.7);
+  } else {
+    filteredData = hardPass;
+  }
   renderDataBody(filteredData);
 }
 
