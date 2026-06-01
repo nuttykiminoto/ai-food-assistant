@@ -514,7 +514,7 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
   <div class="panel">
     <div class="panel-header">🔍 Restaurant Comparison — เปรียบเทียบร้านคะแนนสูงสุด</div>
     <div class="panel-body">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">เปรียบเทียบจุดเด่น / ข้อควรระวัง Top 5 ร้านที่คะแนนรวมสูงสุดในพื้นที่ที่เลือก</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">เปรียบเทียบจุดเด่น / ข้อควรระวัง Top 5 ร้านที่คะแนนรวมสูงสุด <span id="cmpAreaLabel"></span></p>
       <div class="comparison-grid" id="comparisonGrid">
         <div style="text-align:center;color:var(--text2);padding:24px">กำลังโหลด...</div>
       </div>
@@ -815,6 +815,8 @@ function renderRanking(d){
 
 /* ─── RESTAURANT COMPARISON ─── */
 function renderComparison(d){
+  const areaLabel=document.getElementById('cmpAreaLabel');
+  if(areaLabel) areaLabel.textContent=currentArea==='all'?'— ทุกย่าน':'— ย่าน '+currentArea;
   const top=[...d].sort((a,b)=>parseFloat(b.total_score)-parseFloat(a.total_score)).slice(0,5);
   if(!top.length){ document.getElementById('comparisonGrid').innerHTML='<div style="text-align:center;color:var(--text2);padding:24px">ไม่พบข้อมูล</div>'; return; }
   const tagColors=['#f472b6','#c084fc','#34d399','#fb923c','#60a5fa'];
@@ -873,7 +875,10 @@ function buildCons(r){
 }
 
 /* ─── MINI GAME ─── */
-(function(){
+var _gameStarted=false;
+function startGame(){
+  if(_gameStarted)return;
+  _gameStarted=true;
   const CV=document.getElementById('gameCanvas');
   if(!CV)return;
   const cx=CV.getContext('2d');
@@ -908,7 +913,7 @@ function buildCons(r){
 
     spawnT++;
     if(spawnT>=spawnI){
-      const h=22+Math.random()*18, w=26+Math.random()*14;
+      const h=22+Math.random()*18,w=26+Math.random()*14;
       obs.push({x:W+8,y:GR+30-h,w,h,e:DISHES[Math.floor(Math.random()*DISHES.length)]});
       spawnT=0;
     }
@@ -918,7 +923,7 @@ function buildCons(r){
       if(obs[i].x+obs[i].w<0){obs.splice(i,1);continue;}
       const o=obs[i];
       if(chef.x+6<o.x+o.w&&chef.x+24>o.x&&chef.y-28<o.y+o.h&&chef.y+4>o.y){
-        dead=true; running=false;
+        dead=true;running=false;
         if(score>hi){hi=score;document.getElementById('gHi').textContent=hi;}
       }
     }
@@ -930,34 +935,36 @@ function buildCons(r){
     cx.fillRect(0,GR+32,W,2);
     for(let i=0;i<W;i+=38){
       cx.fillStyle='#B4B2A9';
-      cx.fillRect((i-frame*speed*0.25+W*10)%W,GR+36,10,2);
+      cx.fillRect((i-(frame||0)*speed*0.25+W*10)%W,GR+36,10,2);
     }
-
-    obs.forEach(o=>{
-      cx.font=o.h+'px serif';
+    if(running||dead){
+      obs.forEach(o=>{
+        cx.font=o.h+'px serif';
+        cx.textBaseline='bottom';
+        cx.fillText(o.e,o.x,o.y+o.h);
+      });
+      cx.font='28px serif';
       cx.textBaseline='bottom';
-      cx.fillText(o.e,o.x,o.y+o.h);
-    });
-
-    cx.font='28px serif';
-    cx.textBaseline='bottom';
-    cx.fillText('🧑‍🍳',chef.x-2,chef.y+4);
-
+      cx.fillText('🧑‍🍳',chef.x-2,chef.y+4);
+    }
     if(!running&&!dead){
-      cx.fillStyle='rgba(244,114,182,0.15)';
+      cx.font='28px serif';
+      cx.textBaseline='bottom';
+      cx.fillText('🧑‍🍳',55,GR+4);
+      cx.fillStyle='rgba(244,114,182,0.12)';
       cx.fillRect(0,0,W,H);
-      cx.fillStyle='#e879f9';
-      cx.font='13px sans-serif';
+      cx.fillStyle='#d946a8';
+      cx.font='600 14px sans-serif';
       cx.textAlign='center';
       cx.textBaseline='middle';
-      cx.fillText('แตะหรือกด Space เพื่อเริ่ม',W/2,H/2);
+      cx.fillText('แตะหรือกด Space เพื่อเริ่มเกม',W/2,H/2);
       cx.textAlign='left';
     }
     if(dead){
-      cx.fillStyle='rgba(244,114,182,0.1)';
+      cx.fillStyle='rgba(244,114,182,0.12)';
       cx.fillRect(0,0,W,H);
-      cx.fillStyle='#e879f9';
-      cx.font='13px sans-serif';
+      cx.fillStyle='#d946a8';
+      cx.font='600 14px sans-serif';
       cx.textAlign='center';
       cx.textBaseline='middle';
       cx.fillText('ชนจาน! แตะหรือกด Space เพื่อเล่นใหม่',W/2,H/2);
@@ -967,11 +974,12 @@ function buildCons(r){
 
   function loop(){tick();draw();requestAnimationFrame(loop);}
   loop();
-})();
+}
 
 /* ─── SCRAPE ─── */
 async function startScraping(){
   document.getElementById('loadingOverlay').classList.add('active');
+  setTimeout(startGame, 100);
   const msgs=['กำลัง Scrape Google Maps...','เก็บข้อมูล 5 ย่าน...','ทำความสะอาดข้อมูล...','Claude AI กำลังให้คะแนน...','บันทึก Google Sheets...','เกือบเสร็จแล้ว! 🎉'];
   try{ await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger:'html-button',timestamp:new Date().toISOString()}),mode:'no-cors'}); }catch(e){}
   let t=0;
