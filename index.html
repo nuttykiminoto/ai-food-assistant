@@ -251,8 +251,14 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-msg" id="loadingMsg">กำลัง Scrape Google Maps...</div>
   <div class="game-scores">คะแนน: <span id="gScore">0</span> &nbsp;|&nbsp; สูงสุด: <span id="gHi">0</span></div>
-  <canvas id="gameCanvas" width="560" height="150"></canvas>
-  <div class="game-hint">กด Space หรือแตะเพื่อกระโดดหลบจาน 🍜</div>
+  <div id="gameArea" style="width:520px;height:130px;background:#fff;border-radius:16px;border:1.5px solid #f9a8d4;position:relative;overflow:hidden;cursor:pointer;">
+    <div id="gChef" style="position:absolute;bottom:10px;left:50px;width:22px;height:32px;background:#ec4899;border-radius:4px 4px 2px 2px;">
+      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:18px;height:12px;background:#fff;border-radius:8px 8px 0 0;"></div>
+    </div>
+    <div id="gGround" style="position:absolute;bottom:0;left:0;right:0;height:10px;background:#f9a8d4;border-radius:0 0 16px 16px;"></div>
+    <div id="gMsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#ec4899;">กด Space หรือแตะเพื่อเริ่ม</div>
+  </div>
+  <div class="game-hint">กระโดดหลบจาน — กด Space หรือแตะ</div>
 </div>
 
 <!-- TOPBAR -->
@@ -874,121 +880,97 @@ function buildCons(r){
   return cons.slice(0,3);
 }
 
-/* ─── MINI GAME (runner with shapes) ─── */
+/* ─── MINI GAME (div-based) ─── */
 var _gameStarted=false;
 function startGame(){
   if(_gameStarted)return;
   _gameStarted=true;
-  const CV=document.getElementById('gameCanvas');
-  if(!CV)return;
-  const cx=CV.getContext('2d');
-  const W=560,H=150,GND=115;
-  let chef={x:60,y:GND,w:22,h:32,vy:0,onGround:true};
-  let obs=[],frame=0,score=0,hi=0,speed=4,spawnT=0,alive=true,started=false;
+  const area=document.getElementById('gameArea');
+  const chef=document.getElementById('gChef');
+  const msg=document.getElementById('gMsg');
+  if(!area||!chef)return;
+
+  const W=520,GND=10,CHEF_H=32;
+  let vy=0,onGround=true,score=0,hi=0,alive=true,started=false,gameIv=null;
+  let chefBottom=GND;
+  const obstacles=[];
+
+  function setChefBottom(b){
+    chefBottom=b;
+    chef.style.bottom=b+'px';
+  }
 
   function doJump(){
-    if(!started){started=true;return;}
+    if(!started){
+      started=true;
+      msg.style.display='none';
+      gameIv=setInterval(tick,16);
+      return;
+    }
     if(!alive){restart();return;}
-    if(chef.onGround){chef.vy=-11;chef.onGround=false;}
+    if(onGround){vy=10;onGround=false;}
   }
+
   function restart(){
-    chef.y=GND;chef.vy=0;chef.onGround=true;
-    obs=[];frame=0;score=0;speed=4;spawnT=0;alive=true;started=true;
+    obstacles.forEach(o=>o.el.remove());
+    obstacles.length=0;
+    setChefBottom(GND);vy=0;onGround=true;
+    score=0;alive=true;
     document.getElementById('gScore').textContent=0;
+    msg.style.display='none';
+    if(!gameIv)gameIv=setInterval(tick,16);
+  }
+
+  let frame=0,spawnT=0;
+  function tick(){
+    frame++;score++;
+    const speed=3+score/800;
+    document.getElementById('gScore').textContent=score;
+
+    // gravity
+    vy-=0.6;
+    chefBottom+=vy;
+    if(chefBottom<=GND){chefBottom=GND;vy=0;onGround=true;}
+    setChefBottom(chefBottom);
+
+    // spawn
+    spawnT++;
+    const interval=Math.max(55,100-Math.floor(score/400)*5);
+    if(spawnT>=interval){
+      const h=22+Math.random()*22;
+      const el=document.createElement('div');
+      el.style.cssText='position:absolute;right:-25px;background:#f472b6;border-radius:50%;width:20px;height:'+h+'px;bottom:'+GND+'px;';
+      area.appendChild(el);
+      obstacles.push({el,x:W+25,h});
+      spawnT=0;
+    }
+
+    // move & collide
+    const cLeft=50,cRight=72,cTop=area.offsetHeight-GND-CHEF_H-chefBottom+GND,cBottom=area.offsetHeight-GND-chefBottom+GND;
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o=obstacles[i];
+      o.x-=speed;
+      o.el.style.right=(W-o.x)+'px';
+      if(o.x+20<0){o.el.remove();obstacles.splice(i,1);continue;}
+      // collision
+      const oLeft=o.x,oRight=o.x+20;
+      const oBottom=GND,oTop=GND+o.h;
+      const cB=chefBottom,cT=chefBottom+CHEF_H;
+      if(cRight>oLeft&&cLeft<oRight&&cT>oBottom&&cB<oTop){
+        alive=false;
+        clearInterval(gameIv);gameIv=null;
+        if(score>hi){hi=score;document.getElementById('gHi').textContent=hi;}
+        msg.style.display='flex';
+        msg.textContent='ชนจาน! กด Space หรือแตะเพื่อเล่นใหม่';
+      }
+    }
   }
 
   document.addEventListener('keydown',e=>{
     if(e.code==='Space'&&document.getElementById('loadingOverlay').classList.contains('active')){e.preventDefault();doJump();}
   });
-  CV.addEventListener('click',doJump);
-  CV.addEventListener('touchstart',e=>{e.preventDefault();doJump();},{passive:false});
-
-  function update(){
-    if(!started||!alive)return;
-    frame++;score++;
-    speed=4+score/600;
-    document.getElementById('gScore').textContent=score;
-
-    chef.vy+=0.7;chef.y+=chef.vy;
-    if(chef.y>=GND){chef.y=GND;chef.vy=0;chef.onGround=true;}
-
-    spawnT++;
-    const interval=Math.max(55,90-Math.floor(score/300)*3);
-    if(spawnT>=interval){
-      const h=20+Math.random()*25;
-      obs.push({x:W+10,y:GND+chef.h-h,w:18,h});
-      spawnT=0;
-    }
-    for(let i=obs.length-1;i>=0;i--){
-      obs[i].x-=speed;
-      if(obs[i].x+obs[i].w<0){obs.splice(i,1);continue;}
-      const o=obs[i],c=chef;
-      if(c.x+2<o.x+o.w&&c.x+c.w-2>o.x&&c.y-c.h+2<o.y+o.h&&c.y+2>o.y){
-        alive=false;
-        if(score>hi){hi=score;document.getElementById('gHi').textContent=hi;}
-      }
-    }
-  }
-
-  function draw(){
-    cx.clearRect(0,0,W,H);
-
-    // พื้น
-    cx.fillStyle='#e9b8d0';
-    cx.fillRect(0,GND+chef.h,W,3);
-
-    // เส้นพื้น
-    cx.fillStyle='#f4c7dc';
-    for(let i=0;i<W;i+=40){
-      const x=(i-frame*speed*0.3+W*20)%W;
-      cx.fillRect(x,GND+chef.h+5,20,2);
-    }
-
-    // obstacles (จานสีแดง)
-    cx.fillStyle='#f472b6';
-    obs.forEach(o=>{
-      cx.beginPath();
-      cx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);
-      cx.fill();
-      cx.fillStyle='#e879f9';
-      cx.beginPath();
-      cx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2*0.55,o.h/2*0.55,0,0,Math.PI*2);
-      cx.fill();
-      cx.fillStyle='#f472b6';
-    });
-
-    // chef (สี่เหลี่ยมชมพู + หัวกลม)
-    const cy=chef.y-chef.h,cx2=chef.x;
-    cx.fillStyle=alive?'#ec4899':'#9ca3af';
-    // ตัว
-    cx.fillRect(cx2,cy+12,chef.w,chef.h-12);
-    // หัว
-    cx.beginPath();
-    cx.arc(cx2+chef.w/2,cy+8,10,0,Math.PI*2);
-    cx.fill();
-    // หมวกพ่อครัว (สีขาว)
-    cx.fillStyle='#fff';
-    cx.fillRect(cx2+3,cy-4,chef.w-6,10);
-    cx.beginPath();
-    cx.arc(cx2+chef.w/2,cy-4,7,0,Math.PI*2);
-    cx.fill();
-
-    // ข้อความ
-    cx.textAlign='center';
-    cx.textBaseline='middle';
-    if(!started){
-      cx.fillStyle='rgba(236,72,153,0.85)';
-      cx.font='bold 14px sans-serif';
-      cx.fillText('กด Space หรือแตะเพื่อเริ่ม',W/2,H/2-10);
-    } else if(!alive){
-      cx.fillStyle='rgba(236,72,153,0.85)';
-      cx.font='bold 14px sans-serif';
-      cx.fillText('ชนจาน! กด Space หรือแตะเพื่อเล่นใหม่',W/2,H/2-10);
-    }
-    cx.textAlign='left';
-  }
-
-  (function loop(){update();draw();requestAnimationFrame(loop);})();
+  area.addEventListener('click',doJump);
+  area.addEventListener('touchstart',e=>{e.preventDefault();doJump();},{passive:false});
 }
 
 /* ─── SCRAPE ─── */
