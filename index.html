@@ -257,11 +257,16 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     <div id="gMsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#ec4899;">กด Space หรือแตะเพื่อเริ่ม</div>
   </div>
   <div class="game-hint">กระโดดหลบจาน — กด Space หรือแตะ</div>
+  <button onclick="document.getElementById('loadingOverlay').classList.remove('active');loadData();" style="margin-top:4px;background:transparent;border:1.5px solid #f472b6;color:#ec4899;padding:6px 20px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;">✅ Workflow เสร็จแล้ว — โหลดข้อมูล</button>
 </div>
 
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">🍜 AI Food Decision Assistant</div>
+  <div style="display:flex;align-items:center;gap:16px;margin-left:auto;margin-right:12px;font-size:11px;color:rgba(255,255,255,0.9);">
+    <span>👤 Natthanan</span>
+    <span>📅 <span id="reportDate"></span></span>
+  </div>
   <div class="tabs">
     <button class="tab-btn active">Apify Scraper</button>
     <button class="tab-btn">Google Sheets</button>
@@ -389,6 +394,78 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- SCORING CRITERIA TABLE -->
+  <div class="panel">
+    <div class="panel-header" onclick="togglePanel('scoringBody')" style="cursor:pointer;">📊 เกณฑ์การให้คะแนน (Scoring Model 100 คะแนน) <span style="float:right;font-size:11px;color:var(--text2);">คลิกเพื่อดู ▾</span></div>
+    <div class="panel-body" id="scoringBody" style="display:none;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:var(--pink-pale);text-align:left;">
+            <th style="padding:10px 12px;border-bottom:2px solid var(--border2);color:var(--pink2);">หมวดคะแนน</th>
+            <th style="padding:10px 12px;border-bottom:2px solid var(--border2);color:var(--pink2);">คะแนนเต็ม</th>
+            <th style="padding:10px 12px;border-bottom:2px solid var(--border2);color:var(--pink2);">%</th>
+            <th style="padding:10px 12px;border-bottom:2px solid var(--border2);color:var(--pink2);">เกณฑ์</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 12px;">⭐ Rating &amp; Review Quality</td>
+            <td style="padding:9px 12px;font-weight:700;color:var(--pink2);">25</td>
+            <td style="padding:9px 12px;color:var(--text2);">25%</td>
+            <td style="padding:9px 12px;color:var(--text2);">Google Rating + จำนวนรีวิว (น้ำหนัก 20+5)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--pink-pale);">
+            <td style="padding:9px 12px;">👥 Group Suitability</td>
+            <td style="padding:9px 12px;font-weight:700;color:var(--lavender);">20</td>
+            <td style="padding:9px 12px;color:var(--text2);">20%</td>
+            <td style="padding:9px 12px;color:var(--text2);">รองรับ ≥20 คน=20, ≥12=17, ≥8=13, &lt;8=5</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 12px;">💰 Price Suitability</td>
+            <td style="padding:9px 12px;font-weight:700;color:#d97706;">15</td>
+            <td style="padding:9px 12px;color:var(--text2);">15%</td>
+            <td style="padding:9px 12px;color:var(--text2);">≤150฿=15, ≤250฿=12, ≤400฿=9, ≤600฿=6, &gt;600฿=3</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--pink-pale);">
+            <td style="padding:9px 12px;">🚇 Travel Convenience</td>
+            <td style="padding:9px 12px;font-weight:700;color:#2563eb;">15</td>
+            <td style="padding:9px 12px;color:var(--text2);">15%</td>
+            <td style="padding:9px 12px;color:var(--text2);">ติด BTS/MRT=15, เดิน 3-5 นาที=11, เดิน 8-10 นาที=8, Grab=5</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 12px;">📋 Data Completeness</td>
+            <td style="padding:9px 12px;font-weight:700;color:#059669;">15</td>
+            <td style="padding:9px 12px;color:var(--text2);">15%</td>
+            <td style="padding:9px 12px;color:var(--text2);">ครบ 9 fields = 15 คะแนน (สัดส่วน)</td>
+          </tr>
+          <tr style="background:var(--pink-pale);">
+            <td style="padding:9px 12px;">✨ Uniqueness / Experience</td>
+            <td style="padding:9px 12px;font-weight:700;color:var(--peach);">10</td>
+            <td style="padding:9px 12px;color:var(--text2);">10%</td>
+            <td style="padding:9px 12px;color:var(--text2);">ประเภทอาหารพิเศษ: ญี่ปุ่น/ทะเล/อินเดีย=9, จีน/ชาบู=7, อื่นๆ=6</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr style="background:linear-gradient(135deg,#f472b6,#e879f9);color:#fff;">
+            <td style="padding:10px 12px;font-weight:800;">รวมทั้งหมด</td>
+            <td style="padding:10px 12px;font-weight:800;">100</td>
+            <td style="padding:10px 12px;font-weight:800;">100%</td>
+            <td style="padding:10px 12px;"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- TOP 3 RECOMMENDATION -->
+  <div class="panel">
+    <div class="panel-header">🏆 Top 3 ร้านแนะนำ — คะแนนสูงสุดพร้อมเหตุผล</div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">3 ร้านที่คะแนนรวมสูงสุดจากย่านที่เลือก วิเคราะห์จาก 6 มิติ เหมาะสำหรับทีม 8–12 คน</p>
+      <div id="top3Cards" style="display:grid;gap:16px;"></div>
     </div>
   </div>
 
@@ -528,6 +605,9 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
 </div><!-- end .main -->
 
 <script>
+// วันที่ทำ — อัพเดตอัตโนมัติทุกครั้งที่แก้ไข
+document.getElementById('reportDate').textContent = new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+
 const SHEET_ID   = '1rJtWx-jcf0Gv53YZZk-RIfI4P4owmKcTwplTQnWQjdk';
 const SHEET_NAME = 'Clean & Score';
 const WEBHOOK    = 'https://n8n-external.exservice.io/webhook/ai-food-scrape';
@@ -576,7 +656,51 @@ function setArea(area){
 function renderAll(){
   const d=getAreaData();
   document.getElementById('objTotal').textContent=d.length;
-  renderOverview(d); renderScenario(d); renderDataTable(d); renderHumanQueue(d); renderRanking(d); renderComparison(d); populateTypeFilter(d);
+  renderOverview(d); renderScenario(d); renderTop3Cards(d); renderDataTable(d); renderHumanQueue(d); renderRanking(d); renderComparison(d); populateTypeFilter(d);
+}
+
+/* ─── TOP 3 RECOMMENDATION CARDS ─── */
+function renderTop3Cards(d){
+  const top=[...d].sort((a,b)=>parseFloat(b.total_score)-parseFloat(a.total_score)).slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  const colors=['#f472b6','#c084fc','#34d399'];
+  document.getElementById('top3Cards').innerHTML=top.map((r,i)=>{
+    const pros=buildPros(r), cons=buildCons(r);
+    const rating=parseFloat(r.google_rating)||0;
+    const price=parseInt(r.price_per_person)||0;
+    const group=parseInt(r.group_suitable)||0;
+    const tn=(r.travel_note||'').toLowerCase();
+    const travel=tn.includes('bts')||tn.includes('mrt')?'🚇 ใกล้ BTS/MRT':tn.includes('เดิน')?'🚶 เดินได้':'🚗 รถยนต์';
+    return `<div style="border:2px solid ${colors[i]};border-radius:16px;overflow:hidden;">
+      <div style="background:${colors[i]};padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:600;">${medals[i]} อันดับ ${i+1}</div>
+          <div style="font-size:16px;font-weight:800;color:#fff;margin-top:2px;">${r.restaurant_name||'–'}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.9);margin-top:2px;">📍 ${r.area||'–'} · ${r.food_type||'–'} · ⭐${rating} · ฿${price}/คน · 👥${group} คน</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.95);border-radius:50%;width:52px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#333;flex-shrink:0;">
+          ${r.total_score}<div style="font-size:9px;color:#888;font-weight:400;">score</div>
+        </div>
+      </div>
+      <div style="padding:14px 18px;background:#fff;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:#f0fdf4;border-radius:10px;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px;">✅ จุดเด่น</div>
+          ${pros.slice(0,3).map(p=>`<div style="font-size:11px;color:#333;padding:2px 0;">• ${p}</div>`).join('')}
+          <div style="font-size:11px;color:#059669;margin-top:6px;">${travel}</div>
+        </div>
+        <div style="background:#fffbeb;border-radius:10px;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:6px;">⚠️ ข้อควรระวัง</div>
+          ${cons.slice(0,3).map(c=>`<div style="font-size:11px;color:#333;padding:2px 0;">• ${c}</div>`).join('') || '<div style="font-size:11px;color:#999;">ไม่มีข้อควรระวังพิเศษ</div>'}
+        </div>
+      </div>
+      <div style="padding:8px 18px 12px;background:#fff;border-top:1px solid #f3f4f6;">
+        <div style="font-size:11px;color:var(--text2);">
+          ⭐ Rating ${r.score_rating||0}/25 &nbsp;·&nbsp; 👥 Group ${r.score_group||0}/20 &nbsp;·&nbsp; 💰 Price ${r.score_price||0}/15 &nbsp;·&nbsp; 🚇 Travel ${r.score_travel||0}/15 &nbsp;·&nbsp; 📋 Data ${r.score_data||0}/15 &nbsp;·&nbsp; ✨ Unique ${r.score_unique||0}/10
+        </div>
+        ${r.source_url?`<a href="${r.source_url}" target="_blank" style="font-size:11px;color:var(--pink2);text-decoration:none;">🔗 ดูรีวิว Google Maps →</a>`:''}
+      </div>
+    </div>`;
+  }).join('') || '<div style="text-align:center;color:var(--text2);padding:24px;">ไม่พบข้อมูล</div>';
 }
 
 /* ─── OVERVIEW ─── */
