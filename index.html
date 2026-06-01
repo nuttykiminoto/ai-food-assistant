@@ -71,7 +71,7 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
 
 /* ─── PANEL ─── */
 .panel { background:var(--card); border:1.5px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:var(--shadow); }
-.panel-header { background:linear-gradient(135deg,#fdf2f8,#fce7f3); padding:10px 16px; font-size:12px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; border-bottom:1.5px solid var(--border); }
+.panel-header { background:linear-gradient(135deg,#f9a8d4,#f0abfc); padding:10px 16px; font-size:12px; font-weight:700; color:#5b1a6e; display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; border-bottom:1.5px solid var(--border); }
 .panel-header .badge { background:var(--pink2); color:#fff; padding:2px 9px; border-radius:20px; font-size:10px; font-weight:700; }
 .panel-body { padding:16px; }
 
@@ -299,29 +299,9 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
 
 <div class="main">
 
-  <!-- PROJECT OBJECTIVE -->
+  <!-- 1. รายละเอียดระบบ -->
   <div class="panel">
-    <div class="panel-header" onclick="togglePanel('objBody')">🎯 เป้าหมายโปรเจกต์</div>
-    <div class="panel-body" id="objBody">
-      <div class="obj-grid">
-        <div class="obj-stat"><div class="obj-icon">👥</div><div class="obj-val">8–12 คน</div><div class="obj-lbl">กลุ่มเป้าหมาย</div></div>
-        <div class="obj-stat"><div class="obj-icon">📍</div><div class="obj-val">5 ย่าน</div><div class="obj-lbl">พื้นที่รองรับ</div></div>
-        <div class="obj-stat"><div class="obj-icon">🏆</div><div class="obj-val" id="objTotal">–</div><div class="obj-lbl">ร้านในระบบ</div></div>
-      </div>
-      <div class="obj-points">
-        <div class="obj-point"><span class="obj-num">01</span>เก็บข้อมูลร้านอาหารจริงด้วย Apify Google Maps Scraper</div>
-        <div class="obj-point"><span class="obj-num">02</span>Clean &amp; enrich data ด้วย Claude AI — วิเคราะห์ scores ทุกมิติ</div>
-        <div class="obj-point"><span class="obj-num">03</span>Scoring model 100 คะแนน 6 มิติ เพื่อ rank ร้านอย่างเป็นระบบ</div>
-        <div class="obj-point"><span class="obj-num">04</span>Top 3 ร้านตาม scenario: ประหยัด / รีวิวดี / เดินทางสะดวก / คุยงาน / ทีม</div>
-        <div class="obj-point"><span class="obj-num">05</span>AI Ask Bot ตอบคำถามจาก dataset เท่านั้น — ไม่ใช่ความรู้ทั่วไป</div>
-        <div class="obj-point"><span class="obj-num">06</span>Human Review flag ร้านที่ข้อมูล confidence ต่ำ ก่อนตัดสินใจจริง</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SYSTEM DETAILS -->
-  <div class="panel">
-    <div class="panel-header" onclick="togglePanel('optBody')">⚙️ รายละเอียดระบบ (คลิกเพื่อดู)</div>
+    <div class="panel-header" onclick="togglePanel('optBody')">⚙️ รายละเอียดระบบ <span style="margin-left:auto;font-size:11px;font-weight:400;opacity:.8;">คลิกเพื่อดู ▾</span></div>
     <div class="panel-body" id="optBody" style="display:none">
       <div class="optional-tabs">
         <button class="opt-tab active" onclick="switchOpt('workflow',this)">🔄 Workflow</button>
@@ -395,12 +375,13 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
         </div>
       </div>
     </div>
+    </div>
   </div>
 
-  <!-- SCORING CRITERIA TABLE -->
+  <!-- 2. เกณฑ์การให้คะแนน -->
   <div class="panel">
-    <div class="panel-header" onclick="togglePanel('scoringBody')" style="cursor:pointer;">📊 เกณฑ์การให้คะแนน (Scoring Model 100 คะแนน) <span style="float:right;font-size:11px;color:var(--text2);">คลิกเพื่อดู ▾</span></div>
-    <div class="panel-body" id="scoringBody" style="display:none;">
+    <div class="panel-header" onclick="togglePanel('scoringBody')">📊 เกณฑ์การให้คะแนน (Scoring Model 100 คะแนน) <span style="margin-left:auto;font-size:11px;font-weight:400;opacity:.8;">คลิกเพื่อดู ▾</span></div>
+    <div class="panel-body" id="scoringBody" style="display:none">
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <thead>
           <tr style="background:var(--pink-pale);text-align:left;">
@@ -458,18 +439,31 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
         </tfoot>
       </table>
     </div>
-  </div>
-
-  <!-- TOP 3 RECOMMENDATION -->
-  <div class="panel">
-    <div class="panel-header">🏆 Top 3 ร้านแนะนำ — คะแนนสูงสุดพร้อมเหตุผล</div>
-    <div class="panel-body">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">3 ร้านที่คะแนนรวมสูงสุดจากย่านที่เลือก วิเคราะห์จาก 6 มิติ เหมาะสำหรับทีม 8–12 คน</p>
-      <div id="top3Cards" style="display:grid;gap:16px;"></div>
     </div>
   </div>
 
-  <!-- DATASET OVERVIEW -->
+  <!-- 3. เป้าหมายโปรเจกต์ -->
+  <div class="panel">
+    <div class="panel-header" onclick="togglePanel('objBody')">🎯 เป้าหมายโปรเจกต์ <span style="margin-left:auto;font-size:11px;font-weight:400;opacity:.8;">คลิกเพื่อดู ▾</span></div>
+    <div class="panel-body" id="objBody">
+      <div class="obj-grid">
+        <div class="obj-stat"><div class="obj-icon">👥</div><div class="obj-val">8–12 คน</div><div class="obj-lbl">กลุ่มเป้าหมาย</div></div>
+        <div class="obj-stat"><div class="obj-icon">📍</div><div class="obj-val">5 ย่าน</div><div class="obj-lbl">พื้นที่รองรับ</div></div>
+        <div class="obj-stat"><div class="obj-icon">🏆</div><div class="obj-val" id="objTotal">–</div><div class="obj-lbl">ร้านในระบบ</div></div>
+      </div>
+      <div class="obj-points">
+        <div class="obj-point"><span class="obj-num">01</span>เก็บข้อมูลร้านอาหารจริงด้วย Apify Google Maps Scraper</div>
+        <div class="obj-point"><span class="obj-num">02</span>Clean &amp; enrich data ด้วย Claude AI — วิเคราะห์ scores ทุกมิติ</div>
+        <div class="obj-point"><span class="obj-num">03</span>Scoring model 100 คะแนน 6 มิติ เพื่อ rank ร้านอย่างเป็นระบบ</div>
+        <div class="obj-point"><span class="obj-num">04</span>Top 3 ร้านตาม scenario: ประหยัด / รีวิวดี / เดินทางสะดวก / คุยงาน / ทีม</div>
+        <div class="obj-point"><span class="obj-num">05</span>AI Ask Bot ตอบคำถามจาก dataset เท่านั้น — ไม่ใช่ความรู้ทั่วไป</div>
+        <div class="obj-point"><span class="obj-num">06</span>Human Review flag ร้านที่ข้อมูล confidence ต่ำ ก่อนตัดสินใจจริง</div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- 4. ภาพรวม Dataset -->
   <div class="panel">
     <div class="panel-header">📊 ภาพรวม Dataset</div>
     <div class="panel-body">
@@ -482,7 +476,16 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
 
-  <!-- SCENARIO RECOMMENDATION -->
+  <!-- 5. Top 3 ร้านแนะนำ -->
+  <div class="panel">
+    <div class="panel-header">🏆 Top 3 ร้านแนะนำ — คะแนนสูงสุดพร้อมเหตุผล</div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">3 ร้านที่คะแนนรวมสูงสุดจากย่านที่เลือก วิเคราะห์จาก 6 มิติ เหมาะสำหรับทีม 8–12 คน</p>
+      <div id="top3Cards" style="display:grid;gap:16px;"></div>
+    </div>
+  </div>
+
+  <!-- 6. Scenario Recommendation -->
   <div class="panel">
     <div class="panel-header">🎯 Top 3 แนะนำตาม Scenario</div>
     <div class="panel-body">
@@ -499,7 +502,7 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
 
-  <!-- AI ASK BOT -->
+  <!-- 7. AI Ask Bot -->
   <div class="panel">
     <div class="panel-header">🤖 AI Ask Bot <span style="font-size:10px;font-weight:400;opacity:.7">(ตอบจาก dataset เท่านั้น)</span></div>
     <div class="panel-body">
@@ -520,7 +523,7 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
 
-  <!-- RESTAURANT DATASET -->
+  <!-- 8. Restaurant Dataset -->
   <div class="panel">
     <div class="panel-header">📦 Restaurant Dataset <span class="badge" id="datasetCount">0 ร้าน</span></div>
     <div class="panel-body">
@@ -566,7 +569,7 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
 
-  <!-- HUMAN REVIEW QUEUE -->
+  <!-- 9. Human Review Queue -->
   <div class="panel">
     <div class="panel-header">🔍 Human Review Queue <span class="badge" id="hqCount" style="background:var(--peach)">0 รายการ</span></div>
     <div class="panel-body">
@@ -576,7 +579,18 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
 
-  <!-- TOP 10 RANKING -->
+  <!-- 10. Restaurant Comparison -->
+  <div class="panel">
+    <div class="panel-header">🔍 Restaurant Comparison — เปรียบเทียบร้านคะแนนสูงสุด</div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">เปรียบเทียบจุดเด่น / ข้อควรระวัง Top 5 ร้านที่คะแนนรวมสูงสุด <span id="cmpAreaLabel"></span></p>
+      <div class="comparison-grid" id="comparisonGrid">
+        <div style="text-align:center;color:var(--text2);padding:24px">กำลังโหลด...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Top 10 Ranking (bottom) -->
   <div class="panel">
     <div class="panel-header">🏆 Top 10 Ranking <span id="rankArea" style="font-size:10px;font-weight:400;opacity:.7">— ทุกย่าน</span></div>
     <div class="panel-body">
@@ -591,21 +605,10 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     </div>
   </div>
 
-  <!-- RESTAURANT COMPARISON -->
-  <div class="panel">
-    <div class="panel-header">🔍 Restaurant Comparison — เปรียบเทียบร้านคะแนนสูงสุด</div>
-    <div class="panel-body">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">เปรียบเทียบจุดเด่น / ข้อควรระวัง Top 5 ร้านที่คะแนนรวมสูงสุด <span id="cmpAreaLabel"></span></p>
-      <div class="comparison-grid" id="comparisonGrid">
-        <div style="text-align:center;color:var(--text2);padding:24px">กำลังโหลด...</div>
-      </div>
-    </div>
-  </div>
-
 </div><!-- end .main -->
 
 <script>
-// วันที่ทำ — อัพเดตอัตโนมัติทุกครั้งที่แก้ไข
+
 document.getElementById('reportDate').textContent = new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
 
 const SHEET_ID   = '1rJtWx-jcf0Gv53YZZk-RIfI4P4owmKcTwplTQnWQjdk';
@@ -657,50 +660,6 @@ function renderAll(){
   const d=getAreaData();
   document.getElementById('objTotal').textContent=d.length;
   renderOverview(d); renderScenario(d); renderTop3Cards(d); renderDataTable(d); renderHumanQueue(d); renderRanking(d); renderComparison(d); populateTypeFilter(d);
-}
-
-/* ─── TOP 3 RECOMMENDATION CARDS ─── */
-function renderTop3Cards(d){
-  const top=[...d].sort((a,b)=>parseFloat(b.total_score)-parseFloat(a.total_score)).slice(0,3);
-  const medals=['🥇','🥈','🥉'];
-  const colors=['#f472b6','#c084fc','#34d399'];
-  document.getElementById('top3Cards').innerHTML=top.map((r,i)=>{
-    const pros=buildPros(r), cons=buildCons(r);
-    const rating=parseFloat(r.google_rating)||0;
-    const price=parseInt(r.price_per_person)||0;
-    const group=parseInt(r.group_suitable)||0;
-    const tn=(r.travel_note||'').toLowerCase();
-    const travel=tn.includes('bts')||tn.includes('mrt')?'🚇 ใกล้ BTS/MRT':tn.includes('เดิน')?'🚶 เดินได้':'🚗 รถยนต์';
-    return `<div style="border:2px solid ${colors[i]};border-radius:16px;overflow:hidden;">
-      <div style="background:${colors[i]};padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:600;">${medals[i]} อันดับ ${i+1}</div>
-          <div style="font-size:16px;font-weight:800;color:#fff;margin-top:2px;">${r.restaurant_name||'–'}</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.9);margin-top:2px;">📍 ${r.area||'–'} · ${r.food_type||'–'} · ⭐${rating} · ฿${price}/คน · 👥${group} คน</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.95);border-radius:50%;width:52px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#333;flex-shrink:0;">
-          ${r.total_score}<div style="font-size:9px;color:#888;font-weight:400;">score</div>
-        </div>
-      </div>
-      <div style="padding:14px 18px;background:#fff;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="background:#f0fdf4;border-radius:10px;padding:12px;">
-          <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px;">✅ จุดเด่น</div>
-          ${pros.slice(0,3).map(p=>`<div style="font-size:11px;color:#333;padding:2px 0;">• ${p}</div>`).join('')}
-          <div style="font-size:11px;color:#059669;margin-top:6px;">${travel}</div>
-        </div>
-        <div style="background:#fffbeb;border-radius:10px;padding:12px;">
-          <div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:6px;">⚠️ ข้อควรระวัง</div>
-          ${cons.slice(0,3).map(c=>`<div style="font-size:11px;color:#333;padding:2px 0;">• ${c}</div>`).join('') || '<div style="font-size:11px;color:#999;">ไม่มีข้อควรระวังพิเศษ</div>'}
-        </div>
-      </div>
-      <div style="padding:8px 18px 12px;background:#fff;border-top:1px solid #f3f4f6;">
-        <div style="font-size:11px;color:var(--text2);">
-          ⭐ Rating ${r.score_rating||0}/25 &nbsp;·&nbsp; 👥 Group ${r.score_group||0}/20 &nbsp;·&nbsp; 💰 Price ${r.score_price||0}/15 &nbsp;·&nbsp; 🚇 Travel ${r.score_travel||0}/15 &nbsp;·&nbsp; 📋 Data ${r.score_data||0}/15 &nbsp;·&nbsp; ✨ Unique ${r.score_unique||0}/10
-        </div>
-        ${r.source_url?`<a href="${r.source_url}" target="_blank" style="font-size:11px;color:var(--pink2);text-decoration:none;">🔗 ดูรีวิว Google Maps →</a>`:''}
-      </div>
-    </div>`;
-  }).join('') || '<div style="text-align:center;color:var(--text2);padding:24px;">ไม่พบข้อมูล</div>';
 }
 
 /* ─── OVERVIEW ─── */
@@ -844,26 +803,23 @@ function applyFilters(){
   const maxPrice = parseInt(document.getElementById('priceSlider').value);
   const base     = getAreaData();
 
-  // hard cutoff ก่อน — กรองร้านที่ไม่ผ่านเกณฑ์ขั้นต่ำออกทันที
-  const hardPass = base.filter(r => {
+  filteredData = base.filter(r => {
     if(type && r.food_type !== type) return false;
     if(risk && r.risk_level !== risk) return false;
     if(parseInt(r.price_per_person) > maxPrice) return false;
-    if(scenario === 'review' && (parseFloat(r.google_rating) || 0) < 4.5)     return false;
-    if(scenario === 'review' && (parseInt(r.review_count) || 0) < 200)         return false;
-    if(scenario === 'cheap'  && (parseInt(r.price_per_person) || 9999) > 400)  return false;
-    if(scenario === 'team'   && (parseInt(r.group_suitable) || 0) < 8)         return false;
-    if(scenario === 'quick'  && (parseInt(r.score_travel) || 0) < 10)          return false;
+    if(scenario){
+      // hard cutoff รายสถานการณ์
+      if(scenario==='review' && (parseFloat(r.google_rating)||0) < 4.5) return false;
+      if(scenario==='review' && (parseInt(r.review_count)||0) < 200) return false;
+      if(scenario==='cheap'  && (parseInt(r.price_per_person)||9999) > 400) return false;
+      if(scenario==='team'   && (parseInt(r.group_suitable)||0) < 8) return false;
+      if(scenario==='quick'  && (parseInt(r.score_travel)||0) < 10) return false;
+      // กรองเพิ่มด้วยคะแนน scenario สัมพัทธ์
+      const avg = base.reduce((s,x) => s + scScore(x,scenario), 0) / base.length;
+      if(scScore(r, scenario) < avg * 0.7) return false;
+    }
     return true;
   });
-
-  // avg คำนวณจากเฉพาะร้านที่ผ่าน cutoff แล้ว
-  if(scenario){
-    const avg = hardPass.reduce((s,x) => s + scScore(x,scenario), 0) / (hardPass.length || 1);
-    filteredData = hardPass.filter(r => scScore(r, scenario) >= avg * 0.7);
-  } else {
-    filteredData = hardPass;
-  }
   renderDataBody(filteredData);
 }
 
@@ -881,11 +837,6 @@ function renderDataBody(d){
     const conf=r.confidence==='High'?'conf-high':r.confidence==='Medium'?'conf-med':'conf-low';
     const risk=r.risk_level==='low'?'risk-low':r.risk_level==='medium'?'risk-med':'risk-high';
     const riskLabel=r.risk_level==='low'?'ต่ำ':r.risk_level==='medium'?'กลาง':'สูง';
-    const tn=(r.travel_note||'').toLowerCase();
-    const travelLabel=tn.includes('bts')||tn.includes('mrt')?'🚇 BTS/MRT':
-      tn.includes('เดิน')?'🚶 เดินได้':
-      tn.includes('grab')||tn.includes('taxi')||tn.includes('แท็กซี่')?'🚗 Grab/Taxi':
-      r.travel_note&&r.travel_note.length>3?'🚗 รถยนต์':'–';
     return `<tr>
       <td><a href="${r.source_url||'#'}" target="_blank" class="rest-link">${r.restaurant_name||'–'}</a></td>
       <td>฿${r.price_per_person||'–'}</td>
@@ -893,10 +844,9 @@ function renderDataBody(d){
       <td><span class="score-badge ${sc}">${score}</span></td>
       <td><span class="${conf}">${r.confidence||'–'}</span></td>
       <td>${r.food_type||'–'}</td>
-      <td style="font-size:12px;white-space:nowrap">${travelLabel}</td>
       <td><span class="${risk}">${riskLabel}</span></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text2)">ไม่พบข้อมูล</td></tr>';
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">ไม่พบข้อมูล</td></tr>';
 }
 
 function sortBy(col){ if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=false;} renderDataBody(filteredData); }
@@ -943,8 +893,6 @@ function renderRanking(d){
 
 /* ─── RESTAURANT COMPARISON ─── */
 function renderComparison(d){
-  const areaLabel=document.getElementById('cmpAreaLabel');
-  if(areaLabel) areaLabel.textContent=currentArea==='all'?'— ทุกย่าน':'— ย่าน '+currentArea;
   const top=[...d].sort((a,b)=>parseFloat(b.total_score)-parseFloat(a.total_score)).slice(0,5);
   if(!top.length){ document.getElementById('comparisonGrid').innerHTML='<div style="text-align:center;color:var(--text2);padding:24px">ไม่พบข้อมูล</div>'; return; }
   const tagColors=['#f472b6','#c084fc','#34d399','#fb923c','#60a5fa'];
@@ -1002,116 +950,16 @@ function buildCons(r){
   return cons.slice(0,3);
 }
 
-/* ─── MINI GAME (div-based) ─── */
-var _gameStarted=false;
-function startGame(){
-  if(_gameStarted)return;
-  _gameStarted=true;
-  const area=document.getElementById('gameArea');
-  const chef=document.getElementById('gChef');
-  const msg=document.getElementById('gMsg');
-  if(!area||!chef)return;
-
-  const DISHES=['🍜','🍱','🍣','🍛','🍔','🌮','🥘','🍕'];
-  const W=520,GND=10,CHEF_H=32;
-  let vy=0,onGround=true,score=0,hi=0,alive=true,started=false,gameIv=null;
-  let chefBottom=GND;
-  const obstacles=[];
-
-  function setChefBottom(b){
-    chefBottom=b;
-    chef.style.bottom=b+'px';
-  }
-
-  function doJump(){
-    if(!started){
-      started=true;
-      msg.style.display='none';
-      gameIv=setInterval(tick,16);
-      return;
-    }
-    if(!alive){restart();return;}
-    if(onGround){vy=10;onGround=false;}
-  }
-
-  function restart(){
-    obstacles.forEach(o=>o.el.remove());
-    obstacles.length=0;
-    setChefBottom(GND);vy=0;onGround=true;
-    score=0;alive=true;
-    document.getElementById('gScore').textContent=0;
-    msg.style.display='none';
-    if(!gameIv)gameIv=setInterval(tick,16);
-  }
-
-  let frame=0,spawnT=0;
-  function tick(){
-    frame++;score++;
-    const speed=3+score/800;
-    document.getElementById('gScore').textContent=score;
-
-    // gravity
-    vy-=0.6;
-    chefBottom+=vy;
-    if(chefBottom<=GND){chefBottom=GND;vy=0;onGround=true;}
-    setChefBottom(chefBottom);
-
-    // spawn
-    spawnT++;
-    const interval=Math.max(55,100-Math.floor(score/400)*5);
-    if(spawnT>=interval){
-      const dish=DISHES[Math.floor(Math.random()*DISHES.length)];
-      const el=document.createElement('div');
-      el.style.cssText='position:absolute;right:-40px;font-size:28px;line-height:1;bottom:'+GND+'px;';
-      el.textContent=dish;
-      area.appendChild(el);
-      obstacles.push({el,x:W+40,h:30});
-      spawnT=0;
-    }
-
-    // move & collide — hitbox แคบมาก
-    const cLeft=58, cRight=68;
-    for(let i=obstacles.length-1;i>=0;i--){
-      const o=obstacles[i];
-      o.x-=speed;
-      o.el.style.right=(W-o.x)+'px';
-      if(o.x+40<0){o.el.remove();obstacles.splice(i,1);continue;}
-      const oLeft=o.x+10, oRight=o.x+20;
-      const oBottom=GND+4, oTop=GND+20;
-      const cB=chefBottom+4, cT=chefBottom+CHEF_H-8;
-      if(cRight>oLeft&&cLeft<oRight&&cT>oBottom&&cB<oTop){
-        alive=false;
-        clearInterval(gameIv);gameIv=null;
-        if(score>hi){hi=score;document.getElementById('gHi').textContent=hi;}
-        msg.style.display='flex';
-        msg.textContent='ชนจาน! กด Space หรือแตะเพื่อเล่นใหม่';
-      }
-    }
-  }
-
-  document.addEventListener('keydown',e=>{
-    if(e.code==='Space'&&document.getElementById('loadingOverlay').classList.contains('active')){e.preventDefault();doJump();}
-  });
-  area.addEventListener('click',doJump);
-  area.addEventListener('touchstart',e=>{e.preventDefault();doJump();},{passive:false});
-}
-
 /* ─── SCRAPE ─── */
 async function startScraping(){
   document.getElementById('loadingOverlay').classList.add('active');
-  setTimeout(startGame, 100);
   const msgs=['กำลัง Scrape Google Maps...','เก็บข้อมูล 5 ย่าน...','ทำความสะอาดข้อมูล...','Claude AI กำลังให้คะแนน...','บันทึก Google Sheets...','เกือบเสร็จแล้ว! 🎉'];
   try{ await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger:'html-button',timestamp:new Date().toISOString()}),mode:'no-cors'}); }catch(e){}
   let t=0;
-  const TOTAL=480; // 8 นาที = 480 วินาที
   const iv=setInterval(()=>{
     t++;
-    document.getElementById('loadingMsg').textContent=msgs[Math.min(Math.floor(t/(TOTAL/msgs.length)),msgs.length-1)];
-    if(t>=TOTAL){
-      clearInterval(iv);
-      document.getElementById('loadingMsg').textContent='✅ โหลดข้อมูลใหม่แล้ว!';
-      setTimeout(()=>{ document.getElementById('loadingOverlay').classList.remove('active'); loadData(); },1200);
-    }
+    document.getElementById('loadingMsg').textContent=msgs[Math.min(Math.floor(t/15),msgs.length-1)];
+    if(t>=100){ clearInterval(iv); document.getElementById('loadingOverlay').classList.remove('active'); loadData(); }
   },1000);
 }
 
@@ -1124,7 +972,106 @@ function switchOpt(id,el){
   el.classList.add('active'); document.getElementById('opt-'+id).classList.add('active');
 }
 
+
+function togglePanel(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function switchOpt(id,el){
+  document.querySelectorAll('.opt-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.opt-content').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('opt-'+id).classList.add('active');
+}
+
+
+/* ─── TOP 3 RECOMMENDATION CARDS ─── */
+function renderTop3Cards(d){
+  const top=[...d].sort((a,b)=>parseFloat(b.total_score)-parseFloat(a.total_score)).slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  const colors=['#f472b6','#c084fc','#34d399'];
+  document.getElementById('top3Cards').innerHTML=top.map((r,i)=>{
+    const pros=buildPros(r), cons=buildCons(r);
+    const rating=parseFloat(r.google_rating)||0;
+    const price=parseInt(r.price_per_person)||0;
+    const group=parseInt(r.group_suitable)||0;
+    const tn=(r.travel_note||'').toLowerCase();
+    const travel=tn.includes('bts')||tn.includes('mrt')?'🚇 ใกล้ BTS/MRT':tn.includes('เดิน')?'🚶 เดินได้':'🚗 รถยนต์';
+    return `<div style="border:2px solid ${colors[i]};border-radius:16px;overflow:hidden;">
+      <div style="background:${colors[i]};padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:600;">${medals[i]} อันดับ ${i+1}</div>
+          <div style="font-size:16px;font-weight:800;color:#fff;margin-top:2px;">${r.restaurant_name||'–'}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.9);margin-top:2px;">📍 ${r.area||'–'} · ${r.food_type||'–'} · ⭐${rating} · ฿${price}/คน · 👥${group} คน</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.95);border-radius:50%;width:52px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#333;flex-shrink:0;">
+          ${r.total_score}<div style="font-size:9px;color:#888;font-weight:400;">score</div>
+        </div>
+      </div>
+      <div style="padding:14px 18px;background:#fff;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:#f0fdf4;border-radius:10px;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px;">✅ จุดเด่น</div>
+          ${pros.slice(0,3).map(p=>`<div style="font-size:11px;color:#333;padding:2px 0;">• ${p}</div>`).join('')}
+          <div style="font-size:11px;color:#059669;margin-top:6px;">${travel}</div>
+        </div>
+        <div style="background:#fffbeb;border-radius:10px;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:6px;">⚠️ ข้อควรระวัง</div>
+          ${cons.slice(0,3).map(c=>`<div style="font-size:11px;color:#333;padding:2px 0;">• ${c}</div>`).join('')||'<div style="font-size:11px;color:#999;">ไม่มีข้อควรระวังพิเศษ</div>'}
+        </div>
+      </div>
+      <div style="padding:8px 18px 12px;background:#fff;border-top:1px solid #f3f4f6;">
+        <div style="font-size:11px;color:var(--text2);">
+          ⭐ Rating ${r.score_rating||0}/25 &nbsp;·&nbsp; 👥 Group ${r.score_group||0}/20 &nbsp;·&nbsp; 💰 Price ${r.score_price||0}/15 &nbsp;·&nbsp; 🚇 Travel ${r.score_travel||0}/15 &nbsp;·&nbsp; 📋 Data ${r.score_data||0}/15 &nbsp;·&nbsp; ✨ Unique ${r.score_unique||0}/10
+        </div>
+        ${r.source_url?`<a href="${r.source_url}" target="_blank" style="font-size:11px;color:var(--pink2);text-decoration:none;">🔗 ดูรีวิว Google Maps →</a>`:''}
+      </div>
+    </div>`;
+  }).join('') || '<div style="text-align:center;color:var(--text2);padding:24px;">ไม่พบข้อมูล</div>';
+}
+
+/* ─── RESTAURANT COMPARISON TABLE ─── */
+function renderComparison(d){
+  const areaLabel=document.getElementById('cmpAreaLabel');
+  if(areaLabel) areaLabel.textContent=currentArea==='all'?'— ทุกย่าน':'— ย่าน '+currentArea;
+  const top=[...d].sort((a,b)=>parseFloat(b.total_score)-parseFloat(a.total_score)).slice(0,5);
+  if(!top.length){ document.getElementById('comparisonGrid').innerHTML='<div style="text-align:center;color:var(--text2);padding:24px">ไม่พบข้อมูล</div>'; return; }
+  const rows=[
+    {label:'ชื่อร้าน', fn:r=>`<a href="${r.source_url||'#'}" target="_blank" style="color:var(--pink2);font-weight:700;text-decoration:none;">${r.restaurant_name||'–'}</a>`},
+    {label:'ย่าน', fn:r=>r.area||'–'},
+    {label:'ประเภทอาหาร', fn:r=>r.food_type||'–'},
+    {label:'⭐ Rating', fn:r=>`<strong>${r.google_rating||'–'}</strong> <span style="color:var(--text2);font-size:10px;">(${parseInt(r.review_count||0).toLocaleString()})</span>`},
+    {label:'💰 ราคา/คน', fn:r=>r.price_per_person?`฿${r.price_per_person}`:'–'},
+    {label:'👥 รองรับ', fn:r=>r.group_suitable?`${r.group_suitable} คน`:'–'},
+    {label:'🚇 เดินทาง', fn:r=>{const t=(r.travel_note||'').toLowerCase();return t.includes('bts')||t.includes('mrt')?'<span style="color:#2563eb;">BTS/MRT</span>':t.includes('เดิน')?'เดินได้':'รถยนต์';}},
+    {label:'🎯 Score รวม', fn:r=>{const s=parseFloat(r.total_score)||0;const c=s>=75?'#059669':s>=60?'#d97706':'#dc2626';return `<strong style="color:${c};font-size:15px;">${s}</strong><span style="color:var(--text2);font-size:10px;">/100</span>`;}},
+    {label:'⭐ Rating score', fn:r=>`${r.score_rating||0}<span style="color:var(--text2);font-size:10px;">/25</span>`},
+    {label:'👥 Group score', fn:r=>`${r.score_group||0}<span style="color:var(--text2);font-size:10px;">/20</span>`},
+    {label:'💰 Price score', fn:r=>`${r.score_price||0}<span style="color:var(--text2);font-size:10px;">/15</span>`},
+    {label:'🚇 Travel score', fn:r=>`${r.score_travel||0}<span style="color:var(--text2);font-size:10px;">/15</span>`},
+    {label:'⚠️ Risk', fn:r=>{const l=r.risk_level;return l==='low'?'<span style="color:#059669;">ต่ำ</span>':l==='high'?'<span style="color:#dc2626;">สูง</span>':'<span style="color:#d97706;">กลาง</span>';}},
+    {label:'จุดเด่น', fn:r=>buildPros(r).slice(0,2).join('<br>')},
+    {label:'ข้อควรระวัง', fn:r=>buildCons(r).slice(0,2).join('<br>')},
+  ];
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const colColors=['#fce7f3','#f3e8ff','#d1fae5','#fff7ed','#dbeafe'];
+  let html=`<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:600px;">
+    <thead><tr>
+      <th style="padding:8px 12px;text-align:left;background:var(--pink-pale);border-bottom:2px solid var(--border2);color:var(--pink2);white-space:nowrap;width:130px;">หัวข้อ</th>
+      ${top.map((r,i)=>`<th style="padding:8px 10px;text-align:center;background:${colColors[i]};border-bottom:2px solid var(--border2);font-size:11px;">${medals[i]}<br><span style="font-weight:800;">${(r.restaurant_name||'–').substring(0,14)}${r.restaurant_name&&r.restaurant_name.length>14?'…':''}</span></th>`).join('')}
+    </tr></thead>
+    <tbody>
+      ${rows.map((row,ri)=>`<tr style="background:${ri%2===0?'#fff':'var(--pink-pale)'};">
+        <td style="padding:8px 12px;font-weight:600;color:var(--text2);white-space:nowrap;border-right:1.5px solid var(--border);">${row.label}</td>
+        ${top.map(r=>`<td style="padding:8px 10px;text-align:center;vertical-align:middle;">${row.fn(r)}</td>`).join('')}
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+  document.getElementById('comparisonGrid').innerHTML=html;
+}
+
 loadData();
 </script>
-</body>
 </html>
+</body>
