@@ -226,11 +226,13 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
 .sc-bar-inner { height:100%; border-radius:4px; background:rgba(255,255,255,0.8); }
 
 /* ─── LOADING OVERLAY ─── */
-.loading-overlay { display:none; position:fixed; inset:0; background:rgba(253,242,248,.92); z-index:999; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+.loading-overlay { display:none; position:fixed; inset:0; background:rgba(253,242,248,.95); z-index:999; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
 .loading-overlay.active { display:flex; }
-.spinner { width:52px; height:52px; border:4px solid var(--border2); border-top-color:var(--pink2); border-radius:50%; animation:spin 1s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
 .loading-msg { color:var(--pink2); font-size:15px; font-weight:700; }
+.game-hint { font-size:12px; color:var(--text2); }
+#gameCanvas { border:1.5px solid var(--border2); border-radius:16px; background:#fff; display:block; }
+.game-scores { display:flex; gap:24px; font-size:13px; color:var(--text2); }
+.game-scores span { font-weight:600; color:var(--text); }
 
 /* ─── RESPONSIVE ─── */
 @media(max-width:700px){
@@ -247,8 +249,10 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-msg" id="loadingMsg">กำลัง Scraping...</div>
+  <div class="loading-msg" id="loadingMsg">กำลัง Scrape Google Maps...</div>
+  <div class="game-scores">คะแนน: <span id="gScore">0</span> &nbsp;|&nbsp; สูงสุด: <span id="gHi">0</span></div>
+  <canvas id="gameCanvas" width="560" height="150"></canvas>
+  <div class="game-hint">กด Space หรือแตะเพื่อกระโดดหลบจาน 🍜</div>
 </div>
 
 <!-- TOPBAR -->
@@ -470,10 +474,11 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
             <th onclick="sortBy('total_score')">Score ↕</th>
             <th>Confidence</th>
             <th onclick="sortBy('food_type')">ประเภท ↕</th>
+            <th>เดินทาง</th>
             <th>Risk</th>
           </tr></thead>
           <tbody id="dataBody">
-            <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">กำลังโหลด...</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text2)">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
@@ -748,6 +753,11 @@ function renderDataBody(d){
     const conf=r.confidence==='High'?'conf-high':r.confidence==='Medium'?'conf-med':'conf-low';
     const risk=r.risk_level==='low'?'risk-low':r.risk_level==='medium'?'risk-med':'risk-high';
     const riskLabel=r.risk_level==='low'?'ต่ำ':r.risk_level==='medium'?'กลาง':'สูง';
+    const tn=(r.travel_note||'').toLowerCase();
+    const travelLabel=tn.includes('bts')||tn.includes('mrt')?'🚇 BTS/MRT':
+      tn.includes('เดิน')?'🚶 เดินได้':
+      tn.includes('grab')||tn.includes('taxi')||tn.includes('แท็กซี่')?'🚗 Grab/Taxi':
+      r.travel_note&&r.travel_note.length>3?'🚗 รถยนต์':'–';
     return `<tr>
       <td><a href="${r.source_url||'#'}" target="_blank" class="rest-link">${r.restaurant_name||'–'}</a></td>
       <td>฿${r.price_per_person||'–'}</td>
@@ -755,9 +765,10 @@ function renderDataBody(d){
       <td><span class="score-badge ${sc}">${score}</span></td>
       <td><span class="${conf}">${r.confidence||'–'}</span></td>
       <td>${r.food_type||'–'}</td>
+      <td style="font-size:12px;white-space:nowrap">${travelLabel}</td>
       <td><span class="${risk}">${riskLabel}</span></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">ไม่พบข้อมูล</td></tr>';
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text2)">ไม่พบข้อมูล</td></tr>';
 }
 
 function sortBy(col){ if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=false;} renderDataBody(filteredData); }
@@ -861,16 +872,118 @@ function buildCons(r){
   return cons.slice(0,3);
 }
 
+/* ─── MINI GAME ─── */
+(function(){
+  const CV=document.getElementById('gameCanvas');
+  if(!CV)return;
+  const cx=CV.getContext('2d');
+  const W=560,H=150,GR=110;
+  const DISHES=['🍜','🍱','🍣','🍛','🍔','🌮','🥘','🍕'];
+  let chef,obs,frame,speed,spawnT,spawnI,score,hi=0,running=false,dead=false;
+
+  function reset(){
+    chef={x:55,y:GR,vy:0,jump:false,f:0};
+    obs=[];frame=0;speed=5;spawnT=0;spawnI=75;score=0;dead=false;running=true;
+  }
+
+  function jump(){
+    if(!running||dead){reset();return;}
+    if(!chef.jump){chef.vy=-12;chef.jump=true;}
+  }
+
+  document.addEventListener('keydown',e=>{if(e.code==='Space'&&document.getElementById('loadingOverlay').classList.contains('active')){e.preventDefault();jump();}});
+  CV.addEventListener('click',jump);
+  CV.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
+
+  function tick(){
+    if(!running)return;
+    frame++;score++;
+    speed=5+Math.floor(score/500)*0.4;
+    spawnI=Math.max(48,75-Math.floor(score/400)*3);
+    document.getElementById('gScore').textContent=score;
+
+    chef.vy+=0.65; chef.y+=chef.vy;
+    if(chef.y>=GR){chef.y=GR;chef.vy=0;chef.jump=false;}
+    chef.f=Math.floor(frame/8)%2;
+
+    spawnT++;
+    if(spawnT>=spawnI){
+      const h=22+Math.random()*18, w=26+Math.random()*14;
+      obs.push({x:W+8,y:GR+30-h,w,h,e:DISHES[Math.floor(Math.random()*DISHES.length)]});
+      spawnT=0;
+    }
+
+    for(let i=obs.length-1;i>=0;i--){
+      obs[i].x-=speed;
+      if(obs[i].x+obs[i].w<0){obs.splice(i,1);continue;}
+      const o=obs[i];
+      if(chef.x+6<o.x+o.w&&chef.x+24>o.x&&chef.y-28<o.y+o.h&&chef.y+4>o.y){
+        dead=true; running=false;
+        if(score>hi){hi=score;document.getElementById('gHi').textContent=hi;}
+      }
+    }
+  }
+
+  function draw(){
+    cx.clearRect(0,0,W,H);
+    cx.fillStyle='#D3D1C7';
+    cx.fillRect(0,GR+32,W,2);
+    for(let i=0;i<W;i+=38){
+      cx.fillStyle='#B4B2A9';
+      cx.fillRect((i-frame*speed*0.25+W*10)%W,GR+36,10,2);
+    }
+
+    obs.forEach(o=>{
+      cx.font=o.h+'px serif';
+      cx.textBaseline='bottom';
+      cx.fillText(o.e,o.x,o.y+o.h);
+    });
+
+    cx.font='28px serif';
+    cx.textBaseline='bottom';
+    cx.fillText('🧑‍🍳',chef.x-2,chef.y+4);
+
+    if(!running&&!dead){
+      cx.fillStyle='rgba(244,114,182,0.15)';
+      cx.fillRect(0,0,W,H);
+      cx.fillStyle='#e879f9';
+      cx.font='13px sans-serif';
+      cx.textAlign='center';
+      cx.textBaseline='middle';
+      cx.fillText('แตะหรือกด Space เพื่อเริ่ม',W/2,H/2);
+      cx.textAlign='left';
+    }
+    if(dead){
+      cx.fillStyle='rgba(244,114,182,0.1)';
+      cx.fillRect(0,0,W,H);
+      cx.fillStyle='#e879f9';
+      cx.font='13px sans-serif';
+      cx.textAlign='center';
+      cx.textBaseline='middle';
+      cx.fillText('ชนจาน! แตะหรือกด Space เพื่อเล่นใหม่',W/2,H/2);
+      cx.textAlign='left';
+    }
+  }
+
+  function loop(){tick();draw();requestAnimationFrame(loop);}
+  loop();
+})();
+
 /* ─── SCRAPE ─── */
 async function startScraping(){
   document.getElementById('loadingOverlay').classList.add('active');
   const msgs=['กำลัง Scrape Google Maps...','เก็บข้อมูล 5 ย่าน...','ทำความสะอาดข้อมูล...','Claude AI กำลังให้คะแนน...','บันทึก Google Sheets...','เกือบเสร็จแล้ว! 🎉'];
   try{ await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trigger:'html-button',timestamp:new Date().toISOString()}),mode:'no-cors'}); }catch(e){}
   let t=0;
+  const TOTAL=480; // 8 นาที = 480 วินาที
   const iv=setInterval(()=>{
     t++;
-    document.getElementById('loadingMsg').textContent=msgs[Math.min(Math.floor(t/15),msgs.length-1)];
-    if(t>=100){ clearInterval(iv); document.getElementById('loadingOverlay').classList.remove('active'); loadData(); }
+    document.getElementById('loadingMsg').textContent=msgs[Math.min(Math.floor(t/(TOTAL/msgs.length)),msgs.length-1)];
+    if(t>=TOTAL){
+      clearInterval(iv);
+      document.getElementById('loadingMsg').textContent='✅ โหลดข้อมูลใหม่แล้ว!';
+      setTimeout(()=>{ document.getElementById('loadingOverlay').classList.remove('active'); loadData(); },1200);
+    }
   },1000);
 }
 
