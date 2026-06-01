@@ -441,6 +441,14 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
     <div class="panel-body">
       <div class="filter-row">
         <select class="filter-select" id="filterType" onchange="applyFilters()"><option value="">ประเภทอาหาร: ทั้งหมด</option></select>
+        <select class="filter-select" id="filterScenario" onchange="applyFilters()">
+          <option value="">Scenario: ทั้งหมด</option>
+          <option value="cheap">💰 ประหยัด</option>
+          <option value="review">⭐ รีวิวดี</option>
+          <option value="quick">🚇 เดินทางสะดวก</option>
+          <option value="work">💼 คุยงาน</option>
+          <option value="team">👥 ทีม 8–12 คน</option>
+        </select>
         <select class="filter-select" id="filterRisk" onchange="applyFilters()">
           <option value="">ความเสี่ยง: ทั้งหมด</option>
           <option value="low">ต่ำ</option>
@@ -697,13 +705,20 @@ function populateTypeFilter(d){
 }
 
 function applyFilters(){
-  const type=document.getElementById('filterType').value;
-  const risk=document.getElementById('filterRisk').value;
-  const maxPrice=parseInt(document.getElementById('priceSlider').value);
-  filteredData=getAreaData().filter(r=>{
-    if(type && r.food_type!==type) return false;
-    if(risk && r.risk_level!==risk) return false;
-    if(parseInt(r.price_per_person)>maxPrice) return false;
+  const type     = document.getElementById('filterType').value;
+  const scenario = document.getElementById('filterScenario').value;
+  const risk     = document.getElementById('filterRisk').value;
+  const maxPrice = parseInt(document.getElementById('priceSlider').value);
+  const base     = getAreaData();
+
+  filteredData = base.filter(r => {
+    if(type && r.food_type !== type) return false;
+    if(risk && r.risk_level !== risk) return false;
+    if(parseInt(r.price_per_person) > maxPrice) return false;
+    if(scenario){
+      const avg = base.reduce((s,x) => s + scScore(x,scenario), 0) / base.length;
+      if(scScore(r, scenario) < avg * 0.7) return false;
+    }
     return true;
   });
   renderDataBody(filteredData);
