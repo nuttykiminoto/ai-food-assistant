@@ -252,9 +252,7 @@ body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text
   <div class="loading-msg" id="loadingMsg">กำลัง Scrape Google Maps...</div>
   <div class="game-scores">คะแนน: <span id="gScore">0</span> &nbsp;|&nbsp; สูงสุด: <span id="gHi">0</span></div>
   <div id="gameArea" style="width:520px;height:130px;background:#fff;border-radius:16px;border:1.5px solid #f9a8d4;position:relative;overflow:hidden;cursor:pointer;">
-    <div id="gChef" style="position:absolute;bottom:10px;left:50px;width:22px;height:32px;background:#ec4899;border-radius:4px 4px 2px 2px;">
-      <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:18px;height:12px;background:#fff;border-radius:8px 8px 0 0;"></div>
-    </div>
+    <div id="gChef" style="position:absolute;bottom:10px;left:50px;font-size:28px;line-height:1;">🧑‍🍳</div>
     <div id="gGround" style="position:absolute;bottom:0;left:0;right:0;height:10px;background:#f9a8d4;border-radius:0 0 16px 16px;"></div>
     <div id="gMsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#ec4899;">กด Space หรือแตะเพื่อเริ่ม</div>
   </div>
@@ -890,6 +888,7 @@ function startGame(){
   const msg=document.getElementById('gMsg');
   if(!area||!chef)return;
 
+  const DISHES=['🍜','🍱','🍣','🍛','🍔','🌮','🥘','🍕'];
   const W=520,GND=10,CHEF_H=32;
   let vy=0,onGround=true,score=0,hi=0,alive=true,started=false,gameIv=null;
   let chefBottom=GND;
@@ -937,11 +936,12 @@ function startGame(){
     spawnT++;
     const interval=Math.max(55,100-Math.floor(score/400)*5);
     if(spawnT>=interval){
-      const h=22+Math.random()*22;
+      const dish=DISHES[Math.floor(Math.random()*DISHES.length)];
       const el=document.createElement('div');
-      el.style.cssText='position:absolute;right:-25px;background:#f472b6;border-radius:50%;width:20px;height:'+h+'px;bottom:'+GND+'px;';
+      el.style.cssText='position:absolute;right:-40px;font-size:28px;line-height:1;bottom:'+GND+'px;';
+      el.textContent=dish;
       area.appendChild(el);
-      obstacles.push({el,x:W+25,h});
+      obstacles.push({el,x:W+40,h:30});
       spawnT=0;
     }
 
