@@ -614,13 +614,49 @@ document.getElementById('reportDate').textContent = new Date().toLocaleDateStrin
 const SHEET_ID   = '1rJtWx-jcf0Gv53YZZk-RIfI4P4owmKcTwplTQnWQjdk';
 const SHEET_NAME = 'Clean & Score';
 const WEBHOOK    = 'https://n8n-external.exservice.io/webhook/ai-food-scrape';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPg4leon646fOZJa7uZFlspYanLppUjiR4i1WJfavzfxmqFvbnC9iFygMVcPAjl0Oyng/exec';
 
 let allData=[], filteredData=[], currentArea='all', currentScenario='cheap', sortCol='total_score', sortAsc=false;
+
+/* ─── JSONP LOADER (ใช้ได้จาก file:// ไม่ติด CORS) ─── */
+function fetchJSONP(url){
+  return new Promise((resolve,reject)=>{
+    const cb='_cb'+Date.now();
+    const s=document.createElement('script');
+    s.src=url+'?callback='+cb+'&t='+Date.now();
+    window[cb]=d=>{ delete window[cb]; s.remove(); resolve(d); };
+    s.onerror=()=>{ delete window[cb]; s.remove(); reject(new Error('jsonp error')); };
+    document.head.appendChild(s);
+    setTimeout(()=>{ delete window[cb]; s.remove(); reject(new Error('timeout')); },10000);
+  });
+}
 
 /* ─── LOAD DATA ─── */
 async function loadData(){
   const dot=document.getElementById('statusDot'), txt=document.getElementById('statusText');
-  dot.className='status-dot'; txt.textContent='กำลังอ่านจาก Google Sheets...';
+  dot.className='status-dot'; txt.textContent='กำลังอ่านข้อมูล...';
+  // Method 1: JSONP — ใช้ได้ทั้ง file:// และ hosted (ไม่ติด CORS)
+  try {
+    const data=await fetchJSONP(APPS_SCRIPT_URL);
+    if(Array.isArray(data) && data.length>0){
+      allData=data.filter(r=>r.restaurant_name && r.restaurant_name!=='restaurant_name');
+      dot.className='status-dot live';
+      txt.textContent=`เชื่อมต่อสำเร็จ (JSONP) · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`;
+      updateCounts(); renderAll(); return;
+    }
+  } catch(e1) {}
+  // Method 2: fetch ปกติ (ใช้ได้เมื่อ Apps Script ตั้ง CORS ถูกต้อง)
+  try {
+    const res=await fetch(APPS_SCRIPT_URL+'?t='+Date.now());
+    const data=await res.json();
+    if(Array.isArray(data) && data.length>0){
+      allData=data.filter(r=>r.restaurant_name && r.restaurant_name!=='restaurant_name');
+      dot.className='status-dot live';
+      txt.textContent=`เชื่อมต่อสำเร็จ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`;
+      updateCounts(); renderAll(); return;
+    }
+  } catch(e2) {}
+  // Method 3: fallback Google Sheets gviz
   try {
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
     const res=await fetch(url); const raw=await res.text();
@@ -635,7 +671,7 @@ async function loadData(){
     updateCounts(); renderAll();
   } catch(e) {
     dot.style.background='var(--red)';
-    txt.textContent='ไม่สามารถเชื่อมต่อ Google Sheets — ตรวจสอบการตั้งค่า Share';
+    txt.textContent='ไม่สามารถเชื่อมต่อ — ตรวจสอบ Apps Script JSONP support';
   }
 }
 
